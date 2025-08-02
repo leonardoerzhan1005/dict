@@ -9,7 +9,8 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- FontAwesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    
+    <script src="https://cdn.tailwindcss.com"></script>
+
     <style>
         :root {
             --primary: #2a3f8a;       /* основной оттенок синего */
@@ -20,167 +21,431 @@
             --text-light: #f7f7f7;    /* светлый цвет текста */
             --text-dark: #1c1c1c;     /* основной цвет текста */
         }
+        
+        /* Основные стили */
         body {
             background-color: var(--secondary);
             color: var(--text-dark);
-            font-family: 'Inter', sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
         }
-        .navbar {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-        }
-        .navbar-brand, .nav-link, .navbar-nav .nav-link {
-            color: var(--text-light) !important;
-        }
-        .navbar .nav-link:hover {
-            color: var(--accent) !important;
-        }
+        
+        /* Поисковая форма */
         .search-box {
             background: linear-gradient(135deg, var(--primary-light), var(--primary));
             padding: 3rem 0;
-            
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
             margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
         }
-        .alphabet-filter .btn {
-            min-width: 2.5rem;
-            height: 2.5rem;
-            padding: 0.5rem 1rem 0.5rem 1rem;
-            margin: 0.15rem;
-            background-color: var(--secondary);
-            border-color: var(--primary);
-            color: var(--primary-dark);
-            transition: all 0.3s ease;
+        
+        .search-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            opacity: 0.3;
         }
-        .alphabet-filter .btn:hover {
-            background-color: var(--primary);
-            color: var(--text-light);
-        }
+        
+        /* Карточки слов */
         .word-card {
             background-color: var(--text-light);
             border-radius: 0.75rem;
             padding: 1rem;
             box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid transparent;
         }
+        
         .word-card:hover {
             border: 1px solid var(--primary);
             border-radius: 1rem;
             box-shadow: 0 6px 10px rgba(0,0,0,0.12);
+            transform: translateY(-2px);
         }
+        
+        /* Языковые бейджи */
         .language-badge {
             background-color: var(--primary);
             color: var(--text-light);
             border-radius: 0.5rem;
             padding: 0.25rem 0.5rem;
             font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
+        
+        /* Кнопки */
         .btn-primary {
             background-color: var(--primary);
             border-color: var(--primary-dark);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
         }
+        
         .btn-primary:hover {
             background-color: var(--primary-dark);
             border-color: var(--primary);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
         }
-        .btn-outline-danger {
-            color: var(--primary-dark);
-            border-color: var(--primary-dark);
+        
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
         }
-        .btn-danger {
-            background-color: var(--primary-dark);
-            border-color: var(--primary-dark);
+        
+        .btn-primary:hover::before {
+            left: 100%;
         }
-        footer {
-            background-color: var(--primary-dark);
-            color: var(--text-light);
+        
+        /* Формы */
+        .form-control, .form-select {
+            border-radius: 0.5rem;
+            border: 2px solid #e2e8f0;
+            transition: all 0.3s ease;
+            font-size: 1rem;
         }
-        footer a {
-            color: var(--accent);
+        
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(42, 63, 138, 0.1);
+            outline: none;
+        }
+        
+        /* Алерты */
+        .alert {
+            border-radius: 0.75rem;
+            border: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            font-weight: 500;
+        }
+        
+        .alert-success {
+            background: linear-gradient(135deg, #d4edda, #c3e6cb);
+            color: #155724;
+        }
+        
+        .alert-danger {
+            background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+            color: #721c24;
+        }
+        
+        .alert-warning {
+            background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+            color: #856404;
+        }
+        
+        .alert-info {
+            background: linear-gradient(135deg, #d1ecf1, #bee5eb);
+            color: #0c5460;
+        }
+        
+        /* Пагинация */
+        .pagination {
+            gap: 0.25rem;
+        }
+        
+        .page-link {
+            border-radius: 0.5rem;
+            border: 1px solid #e2e8f0;
+            color: var(--primary);
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .page-link:hover {
+            background-color: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            transform: translateY(-1px);
+        }
+        
+        .page-item.active .page-link {
+            background-color: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+        
+        /* Анимации */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+        }
+        
+        .animate-fade-in-up {
+            animation: fadeInUp 0.6s ease-out;
+        }
+        
+        .animate-pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        /* Скроллбар */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-dark);
+        }
+        
+        /* Текст */
+        .text-gradient {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        /* Карточки с градиентом */
+        .card-gradient {
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            border: 1px solid #e2e8f0;
+        }
+        
+        /* Эффект стекла */
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+        
+        /* Тени */
+        .shadow-custom {
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .shadow-custom:hover {
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+        
+        /* Кнопки с градиентом */
+        .btn-gradient {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            border: none;
+            color: white;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-gradient:hover {
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+        
+        /* Иконки */
+        .icon-glow {
+            /* Убрали эффект свечения */
+        }
+        
+        /* Загрузка */
+        .loading-spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Улучшенные анимации для меню */
+        .nav-link-hover {
+            /* Убрали градиентные переходы */
+        }
+        
+        /* Анимация для dropdown меню */
+        .dropdown-menu-animate {
+            transform-origin: top right;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        /* Убрали эффект пульсации */
+        
+        /* Адаптивность */
+        @media (max-width: 768px) {
+            .search-box {
+                padding: 2rem 0;
+            }
+            
+            .word-card {
+                margin-bottom: 1rem;
+            }
         }
     </style>
     
     {% block extra_css %}{% endblock %}
 </head>
 <body>
-    <!-- Навигация -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container">
-            <a class="navbar-brand" href="{% url 'dictionary:home' %}">
-                <i class="fas fa-book"></i> Словарь
-            </a>
-            
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'dictionary:home' %}">Главная</a>
-                    </li>
-                    {% if user.is_authenticated %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'dictionary:profile' %}">Профиль</a>
-                        </li>
-                        {% if user.is_staff %}
-                            <li class="nav-item">
-                                <a class="nav-link" href="{% url 'dictionary:translation_dashboard' %}">Переводы</a>
-                            </li>
+    <!-- Навигация с Tailwind CSS -->
+    <nav class="bg-gradient-to-r from-blue-800 to-blue-900 shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <!-- Логотип и основные ссылки -->
+                <div class="flex items-center">
+                    <a href="{% url 'dictionary:home' %}" class="flex items-center text-white hover:text-blue-200 transition-all duration-300 transform hover:scale-105">
+                        <i class="fas fa-book text-xl mr-2"></i>
+                        <span class="text-xl font-bold">Словарь</span>
+                    </a>
+                    
+                    <!-- Основное меню -->
+                    <div class="hidden md:flex ml-10 space-x-8">
+                        <a href="{% url 'dictionary:home' %}" class="text-white hover:text-blue-200 px-3 py-2 rounded-md text-sm font-medium transition-all duration-300 transform hover:scale-105 hover:bg-blue-700 hover:shadow-lg nav-link-hover">
+                            <i class="fas fa-home mr-1"></i> Главная
+                        </a>
+                        {% if user.is_authenticated %}
+                            <a href="{% url 'dictionary:profile' %}" class="text-white hover:text-blue-200 px-3 py-2 rounded-md text-sm font-medium transition-all duration-300 transform hover:scale-105 hover:bg-blue-700 hover:shadow-lg nav-link-hover">
+                                <i class="fas fa-user mr-1"></i> Профиль
+                            </a>
+                            {% if user.is_staff %}
+                                <a href="{% url 'dictionary:translation_dashboard' %}" class="text-white hover:text-blue-200 px-3 py-2 rounded-md text-sm font-medium transition-all duration-300 transform hover:scale-105 hover:bg-blue-700 hover:shadow-lg nav-link-hover">
+                                    <i class="fas fa-language mr-1"></i> Переводы
+                                </a>
+                            {% endif %}
                         {% endif %}
-                    {% endif %}
-                </ul>
+                    </div>
+                </div>
                 
-                <!-- Переключатель языка и аутентификация -->
-                <div class="navbar-nav">
-                    <div class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                            <i class="fas fa-globe"></i> 
+                <!-- Правая часть меню -->
+                <div class="flex items-center space-x-4">
+                    <!-- Переключатель языка -->
+                    <div class="relative">
+                        <button class="text-white hover:text-blue-200 px-3 py-2 rounded-md text-sm font-medium transition-all duration-300 transform hover:scale-105 hover:bg-blue-700 hover:shadow-lg flex items-center" id="language-dropdown">
+                            <i class="fas fa-globe mr-1"></i>
                             {% if user_language == 'ru' %}Русский
                             {% elif user_language == 'kk' %}Қазақша
                             {% elif user_language == 'en' %}English
                             {% elif user_language == 'tr' %}Türkçe
                             {% else %}Русский{% endif %}
-                        </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="?lang=ru">Русский</a></li>
-                            <li><a class="dropdown-item" href="?lang=kk">Қазақша</a></li>
-                            <li><a class="dropdown-item" href="?lang=en">English</a></li>
-                            <li><a class="dropdown-item" href="?lang=tr">Türkçe</a></li>
-                        </ul>
+                            <i class="fas fa-chevron-down ml-1 text-xs transition-transform duration-300"></i>
+                        </button>
+                        <div class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 hidden" id="language-menu">
+                            <a href="?lang=ru" class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700">
+                                <i class="fas fa-flag mr-2"></i>Русский
+                            </a>
+                            <a href="?lang=kk" class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700">
+                                <i class="fas fa-flag mr-2"></i>Қазақша
+                            </a>
+                            <a href="?lang=en" class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700">
+                                <i class="fas fa-flag mr-2"></i>English
+                            </a>
+                            <a href="?lang=tr" class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700">
+                                <i class="fas fa-flag mr-2"></i>Türkçe
+                            </a>
+                        </div>
                     </div>
                     
+                    <!-- Меню пользователя -->
                     {% if user.is_authenticated %}
-                        <div class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                                <i class="fas fa-user"></i> {{ user.username }}
-                            </a>
-                            <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="{% url 'dictionary:profile' %}">
-                                    <i class="fas fa-user"></i> Профиль
-                                </a></li>
+                        <div class="relative">
+                            <button class="text-white hover:text-blue-200 px-3 py-2 rounded-md text-sm font-medium transition-all duration-300 transform hover:scale-105 hover:bg-blue-700 hover:shadow-lg flex items-center" id="user-dropdown">
+                                <i class="fas fa-user mr-1"></i>
+                                {{ user.username }}
+                                <i class="fas fa-chevron-down ml-1 text-xs transition-transform duration-300"></i>
+                            </button>
+                            <div class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 hidden" id="user-menu">
+                                <a href="{% url 'dictionary:profile' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700">
+                                    <i class="fas fa-user mr-2"></i> Профиль
+                                </a>
                                 {% if user.is_staff %}
-                                    <li><a class="dropdown-item" href="{% url 'admin:index' %}">
-                                        <i class="fas fa-cog"></i> Админка
-                                    </a></li>
-                                    <li><a class="dropdown-item" href="{% url 'dictionary:translation_dashboard' %}">
-                                        <i class="fas fa-language"></i> Переводы
-                                    </a></li>
+                                    <a href="{% url 'admin:index' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700">
+                                        <i class="fas fa-cog mr-2"></i> Админка
+                                    </a>
+                                    <a href="{% url 'dictionary:translation_dashboard' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700">
+                                        <i class="fas fa-language mr-2"></i> Переводы
+                                    </a>
                                 {% endif %}
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="{% url 'dictionary:logout' %}">
-                                    <i class="fas fa-sign-out-alt"></i> Выйти
-                                </a></li>
-                            </ul>
+                                <div class="border-t border-gray-100 my-1"></div>
+                                <a href="{% url 'dictionary:logout' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700">
+                                    <i class="fas fa-sign-out-alt mr-2"></i> Выйти
+                                </a>
+                            </div>
                         </div>
                     {% else %}
-                        <div class="navbar-nav">
-                            <a class="nav-link" href="{% url 'dictionary:login' %}">
-                                <i class="fas fa-sign-in-alt"></i> Войти
+                        <div class="flex items-center space-x-2">
+                            <a href="{% url 'dictionary:login' %}" class="text-white hover:text-blue-200 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200">
+                                <i class="fas fa-sign-in-alt mr-1"></i> Войти
                             </a>
-                            <a class="nav-link" href="{% url 'dictionary:register' %}">
-                                <i class="fas fa-user-plus"></i> Регистрация
+                            <a href="{% url 'dictionary:register' %}" class="btn-gradient px-4 py-2 rounded-md text-sm font-medium">
+                                <i class="fas fa-user-plus mr-1"></i> Регистрация
                             </a>
                         </div>
+                    {% endif %}
+                    
+                    <!-- Мобильное меню -->
+                    <div class="md:hidden">
+                        <button class="text-white hover:text-blue-200 p-2 rounded-md" id="mobile-menu-button">
+                            <i class="fas fa-bars text-xl"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Мобильное меню -->
+            <div class="md:hidden hidden" id="mobile-menu">
+                <div class="px-2 pt-2 pb-3 space-y-1 bg-blue-800 rounded-b-lg">
+                    <a href="{% url 'dictionary:home' %}" class="text-white hover:text-blue-200 block px-3 py-2 rounded-md text-base font-medium">
+                        <i class="fas fa-home mr-2"></i> Главная
+                    </a>
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'dictionary:profile' %}" class="text-white hover:text-blue-200 block px-3 py-2 rounded-md text-base font-medium">
+                            <i class="fas fa-user mr-2"></i> Профиль
+                        </a>
+                        {% if user.is_staff %}
+                            <a href="{% url 'dictionary:translation_dashboard' %}" class="text-white hover:text-blue-200 block px-3 py-2 rounded-md text-base font-medium">
+                                <i class="fas fa-language mr-2"></i> Переводы
+                            </a>
+                        {% endif %}
+                    {% else %}
+                        <a href="{% url 'dictionary:login' %}" class="text-white hover:text-blue-200 block px-3 py-2 rounded-md text-base font-medium">
+                            <i class="fas fa-sign-in-alt mr-2"></i> Войти
+                        </a>
+                        <a href="{% url 'dictionary:register' %}" class="text-white hover:text-blue-200 block px-3 py-2 rounded-md text-base font-medium">
+                            <i class="fas fa-user-plus mr-2"></i> Регистрация
+                        </a>
                     {% endif %}
                 </div>
             </div>
@@ -193,7 +458,7 @@
         {% if messages %}
             <div class="container mt-3">
                 {% for message in messages %}
-                    <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+                    <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show animate-fade-in-up" role="alert">
                         {{ message }}
                         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     </div>
@@ -205,15 +470,15 @@
     </main>
 
     <!-- Footer -->
-    <footer class="bg-dark text-light py-4 mt-5">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-6">
-                    <h5>Многоязычный словарь</h5>
-                    <p>Поиск слов на русском, казахском, английском и турецком языках</p>
+    <footer class="bg-gradient-to-r from-blue-900 to-blue-800 text-white py-8 mt-5">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                    <h5 class="text-xl font-bold mb-2 text-gradient">Многоязычный словарь</h5>
+                    <p class="text-blue-100">Поиск слов на русском, казахском, английском и турецком языках</p>
                 </div>
-                <div class="col-md-6 text-md-end">
-                    <p>&copy; 2024 Словарь. Все права защищены.</p>
+                <div class="text-right">
+                    <p class="text-blue-100">&copy; 2024 Словарь. Все права защищены.</p>
                 </div>
             </div>
         </div>
@@ -298,6 +563,37 @@
                     }
                 });
             });
+            
+            // Dropdown меню для языка
+            $('#language-dropdown').on('click', function(e) {
+                e.preventDefault();
+                $('#language-menu').toggleClass('hidden');
+                $('#user-menu').addClass('hidden');
+            });
+            
+            // Dropdown меню для пользователя
+            $('#user-dropdown').on('click', function(e) {
+                e.preventDefault();
+                $('#user-menu').toggleClass('hidden');
+                $('#language-menu').addClass('hidden');
+            });
+            
+            // Мобильное меню
+            $('#mobile-menu-button').on('click', function() {
+                $('#mobile-menu').toggleClass('hidden');
+            });
+            
+            // Закрыть dropdown при клике вне
+            $(document).on('click', function(e) {
+                if (!$(e.target).closest('.relative').length) {
+                    $('#language-menu, #user-menu').addClass('hidden');
+                }
+            });
+            
+            // Анимация появления элементов
+            $('.word-card').addClass('animate-fade-in-up');
+            
+            // Убрали эффекты пульсации
         });
     </script>
     

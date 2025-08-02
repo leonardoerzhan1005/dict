@@ -20,6 +20,16 @@ def home(request):
     language_code = request.GET.get('lang', '')
     category_id = request.GET.get('category', '')
     page = request.GET.get('page', 1)
+    try:
+        page = int(page)
+    except ValueError:
+        page = 1
+    
+    # Преобразуем category_id в int, если он не пустой
+    try:
+        category_id = int(category_id) if category_id else None
+    except ValueError:
+        category_id = None
     
     # Базовый queryset - только одобренные и не удалённые слова
     words = Word.objects.filter(status='approved', is_deleted=False)
@@ -29,7 +39,7 @@ def home(request):
         words = words.filter(language__code=language_code)
     
     # Фильтр по категории
-    if category_id:
+    if category_id is not None:
         words = words.filter(category_id=category_id)
     
     # Поиск по запросу

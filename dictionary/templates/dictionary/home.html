@@ -2,13 +2,301 @@
 
 {% block title %}Поиск слов - Многоязычный словарь{% endblock %}
 
+{% block extra_css %}
+<style>
+    /* Простой и грамотный дизайн */
+    
+    /* Поисковая форма */
+    .search-box {
+        background: #f8f9fa;
+        padding: 2rem 0;
+        border-bottom: 1px solid #dee2e6;
+    }
+    
+    .search-title {
+        color: #495057;
+        font-size: 1.75rem;
+        font-weight: 400;
+        margin-bottom: 1rem;
+        text-align: center;
+    }
+    
+    .search-form {
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    
+    .search-input {
+        border: 2px solid #dee2e6;
+        border-radius: 4px;
+        padding: 12px 16px;
+        font-size: 16px;
+        width: 100%;
+        transition: border-color 0.3s ease;
+    }
+    
+    .search-input:focus {
+        outline: none;
+        border-color: #007bff;
+        box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+    }
+    
+    .search-button {
+        background: #007bff;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        font-size: 16px;
+        font-weight: 500;
+        border-radius: 4px;
+        transition: background-color 0.3s ease;
+    }
+    
+    .search-button:hover {
+        background: #0056b3;
+    }
+    
+    /* Фильтры */
+    .filter-card {
+        background: white;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        transition: border-color 0.3s ease;
+    }
+    
+    .filter-card:hover {
+        border-color: #007bff;
+    }
+    
+    .filter-header {
+        background: #f8f9fa;
+        color: #495057;
+        padding: 12px 16px;
+        font-weight: 600;
+        border-bottom: 1px solid #dee2e6;
+    }
+    
+    .filter-select {
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+        padding: 8px 12px;
+        font-size: 14px;
+        width: 100%;
+        transition: border-color 0.3s ease;
+    }
+    
+    .filter-select:focus {
+        outline: none;
+        border-color: #007bff;
+    }
+    
+    /* Индикатор загрузки */
+    .loading-indicator {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(0,0,0,0.8);
+        color: white;
+        padding: 20px;
+        border-radius: 8px;
+        z-index: 9999;
+        font-size: 16px;
+        font-weight: 500;
+    }
+    
+    /* Результаты поиска */
+    .results-header {
+        background: #f8f9fa;
+        padding: 16px 20px;
+        border-radius: 4px;
+        margin-bottom: 20px;
+        border-left: 4px solid #007bff;
+    }
+    
+    .results-title {
+        color: #495057;
+        font-size: 18px;
+        font-weight: 600;
+        margin: 0;
+    }
+    
+    .results-count {
+        color: #6c757d;
+        font-size: 14px;
+        margin-top: 4px;
+    }
+    
+    /* Карточки слов */
+    .word-card-enhanced {
+        background: white;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        margin-bottom: 16px;
+    }
+    
+    .word-card-enhanced:hover {
+        border-color: #007bff;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+    
+    .word-title {
+        color: #495057;
+        font-size: 18px;
+        font-weight: 600;
+        margin: 0;
+        line-height: 1.4;
+        text-decoration: none;
+        transition: color 0.3s ease;
+    }
+    
+    .word-title:hover {
+        color: #007bff;
+    }
+    
+    .language-badge-enhanced {
+        background: #007bff;
+        color: white;
+        font-size: 11px;
+        font-weight: 600;
+        padding: 4px 8px;
+        border-radius: 3px;
+        text-transform: uppercase;
+    }
+    
+    .category-badge {
+        background: #28a745;
+        color: white;
+        font-size: 11px;
+        font-weight: 500;
+        padding: 3px 6px;
+        border-radius: 3px;
+    }
+    
+    .difficulty-badge {
+        background: #ffc107;
+        color: #212529;
+        font-size: 11px;
+        font-weight: 500;
+        padding: 3px 6px;
+        border-radius: 3px;
+    }
+    
+    .detail-button {
+        background: #007bff;
+        color: white;
+        border: none;
+        padding: 6px 12px;
+        font-size: 12px;
+        font-weight: 500;
+        border-radius: 3px;
+        text-decoration: none;
+        transition: background-color 0.3s ease;
+    }
+    
+    .detail-button:hover {
+        background: #0056b3;
+        color: white;
+        text-decoration: none;
+    }
+    
+    /* Пагинация */
+    .pagination-enhanced {
+        gap: 4px;
+    }
+    
+    .page-link-enhanced {
+        border: 1px solid #dee2e6;
+        color: #007bff;
+        padding: 8px 12px;
+        font-size: 14px;
+        font-weight: 500;
+        text-decoration: none;
+        border-radius: 3px;
+        transition: all 0.3s ease;
+    }
+    
+    .page-link-enhanced:hover {
+        background: #007bff;
+        color: white;
+        border-color: #007bff;
+        text-decoration: none;
+    }
+    
+    .page-item.active .page-link-enhanced {
+        background: #007bff;
+        color: white;
+        border-color: #007bff;
+    }
+    
+    /* Пустое состояние */
+    .empty-state {
+        background: #f8f9fa;
+        border: 2px dashed #dee2e6;
+        border-radius: 4px;
+        padding: 40px 20px;
+        text-align: center;
+    }
+    
+    .empty-icon {
+        font-size: 3rem;
+        color: #6c757d;
+        margin-bottom: 1rem;
+    }
+    
+    .empty-title {
+        color: #495057;
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 8px;
+    }
+    
+    .empty-text {
+        color: #6c757d;
+        font-size: 14px;
+        margin-bottom: 20px;
+    }
+    
+    /* Анимация появления карточек */
+    .word-card-animate {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    
+    .word-card-animate.show {
+        animation: cardAppear 0.4s ease-out forwards;
+    }
+    
+    @keyframes cardAppear {
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    /* Адаптивность */
+    @media (max-width: 768px) {
+        .search-title {
+            font-size: 1.5rem;
+        }
+        
+        .word-card-enhanced {
+            margin-bottom: 12px;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <!-- Поисковая форма -->
 <div class="search-box">
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-lg-8">
-                <h1 class="text-center text-white mb-4">
+                <h1 class="search-title">
                     <i class="fas fa-search"></i> Поиск слов
                     {% if user.is_staff %}
                         <div class="mt-2">
@@ -19,17 +307,17 @@
                     {% endif %}
                 </h1>
                 
-                <form method="GET" action="{% url 'dictionary:home' %}">
-                    <div class="input-group input-group-lg" id="search-container">
+                <form method="GET" action="{% url 'dictionary:home' %}" class="search-form">
+                    <div class="input-group" id="search-container">
                         <input type="text" 
-                               class="form-control" 
+                               class="form-control search-input" 
                                id="search-input"
                                name="q" 
                                value="{{ current_query }}"
                                placeholder="Введите слово для поиска..."
                                autocomplete="off">
-                        <button class="btn btn-primary" type="submit">
-                            <i class="fas fa-search"></i> Найти
+                        <button class="btn search-button" type="submit">
+                            <i class="fas fa-search"></i> Найти 
                         </button>
                     </div>
                 </form>
@@ -43,15 +331,15 @@
     <div class="row mb-4">
         <div class="col-md-6">
             <!-- Фильтр по языку -->
-            <div class="card">
-                <div class="card-header">
+            <div class="card filter-card">
+                <div class="filter-header">
                     <h6 class="mb-0"><i class="fas fa-globe"></i> Язык</h6>
                 </div>
                 <div class="card-body">
                     <form method="GET" action="{% url 'dictionary:home' %}">
                         {% if current_query %}<input type="hidden" name="q" value="{{ current_query }}">{% endif %}
                         {% if current_category %}<input type="hidden" name="category" value="{{ current_category }}">{% endif %}
-                        <select class="form-select" id="language-filter" name="lang" onchange="this.form.submit()">
+                        <select class="form-select filter-select" id="language-filter" name="lang">
                         <option value="">Все языки</option>
                         {% for language in languages %}
                             <option value="{{ language.code }}" 
@@ -59,26 +347,27 @@
                                 {{ language.name }}
                             </option>
                         {% endfor %}
-                    </select>
+                        </select>
+                    </form>
                 </div>
             </div>
         </div>
         
         <div class="col-md-6">
             <!-- Фильтр по категории -->
-            <div class="card">
-                <div class="card-header">
+            <div class="card filter-card">
+                <div class="filter-header">
                     <h6 class="mb-0"><i class="fas fa-tags"></i> Категория</h6>
                 </div>
                 <div class="card-body">
                     <form method="GET" action="{% url 'dictionary:home' %}">
                         {% if current_query %}<input type="hidden" name="q" value="{{ current_query }}">{% endif %}
                         {% if current_language %}<input type="hidden" name="lang" value="{{ current_language }}">{% endif %}
-                        <select class="form-select" name="category" onchange="this.form.submit()">
+                        <select class="form-select filter-select" name="category">
                             <option value="">Все категории</option>
                             {% for cat_data in categories %}
                                 <option value="{{ cat_data.category.id }}" 
-                                        {% if current_category == cat_data.category.id|stringformat:"s" %}selected{% endif %}>
+                                        {% if current_category == cat_data.category.id %}selected{% endif %}>
                                     {{ cat_data.name }}
                                 </option>
                             {% endfor %}
@@ -93,45 +382,60 @@
     <div class="row">
         <div class="col-12">
             {% if current_query %}
-                <h4>Результаты поиска для "{{ current_query }}"</h4>
-                <p class="text-muted">Найдено {{ words.paginator.count }} слов</p>
+                <div class="results-header">
+                    <h4 class="results-title">Результаты поиска для "{{ current_query }}"</h4>
+                    <div class="results-count">Найдено {{ words.paginator.count }} слов</div>
+                </div>
             {% endif %}
             
             {% if words %}
+                <!-- Карточки слов -->
                 <div class="row">
                     {% for word in words %}
                         <div class="col-md-6 col-lg-4 mb-3">
-                            <div class="card word-card h-100">
-                                <div class="card-body">
+                            <div class="word-card-enhanced word-card-animate">
+                                <div class="p-3">
+                                    <!-- Заголовок слова с языковым бейджем -->
                                     <div class="d-flex justify-content-between align-items-start mb-2">
-                                        <h5 class="card-title mb-0">
-                                            <a href="{% url 'dictionary:word_detail' word.id %}" class="text-decoration-none">
+                                        <a href="{% url 'dictionary:word_detail' word.id %}" class="text-decoration-none flex-grow-1 me-2">
+                                            <h5 class="word-title">
                                                 {{ word.word }}
-                                            </a>
-                                        </h5>
-                                        <span class="badge bg-primary language-badge">
+                                            </h5>
+                                        </a>
+                                        <span class="language-badge-enhanced">
                                             {{ word.language.code|upper }}
                                         </span>
                                     </div>
                                     
-                                    <p class="card-text text-muted">
-                                        {{ word.meaning|truncatewords:10 }}
+                                    <!-- Значение слова -->
+                                    <p class="text-muted mb-3" style="font-size: 14px; line-height: 1.4;">
+                                        {{ word.meaning|truncatewords:12 }}
                                     </p>
                                     
-                                    {% if word.category %}
-                                        <span class="badge bg-secondary">{{ word.category.code }}</span>
-                                    {% endif %}
+                                    <!-- Категория и сложность -->
+                                    <div class="mb-3">
+                                        {% if word.category %}
+                                            <span class="category-badge me-1">
+                                                {{ word.category.code }}
+                                            </span>
+                                        {% endif %}
+                                        {% if word.difficulty %}
+                                            <span class="difficulty-badge">
+                                                {{ word.get_difficulty_display }}
+                                            </span>
+                                        {% endif %}
+                                    </div>
                                     
-                                    {% if word.difficulty %}
-                                        <span class="badge bg-info">{{ word.get_difficulty_display }}</span>
-                                    {% endif %}
-                                </div>
-                                
-                                <div class="card-footer bg-transparent">
+                                    <!-- Нижняя часть с датой и действиями -->
                                     <div class="d-flex justify-content-between align-items-center">
                                         <small class="text-muted">
-                                            <i class="fas fa-calendar"></i> {{ word.created_at|date:"d.m.Y" }}
+                                            <i class="fas fa-calendar mr-1"></i>
+                                            {{ word.created_at|date:"d.m.Y" }}
                                         </small>
+                                        <a href="{% url 'dictionary:word_detail' word.id %}" 
+                                           class="detail-button">
+                                            Подробнее
+                                        </a>
                                     </div>
                                 </div>
                             </div>
@@ -141,11 +445,11 @@
                 
                 <!-- Пагинация -->
                 {% if words.has_other_pages %}
-                    <nav aria-label="Навигация по страницам">
-                        <ul class="pagination justify-content-center">
+                    <nav aria-label="Навигация по страницам" class="mt-4">
+                        <ul class="pagination pagination-enhanced justify-content-center">
                             {% if words.has_previous %}
                                 <li class="page-item">
-                                    <a class="page-link" href="?page={{ words.previous_page_number }}{% if current_query %}&q={{ current_query }}{% endif %}{% if current_language %}&lang={{ current_language }}{% endif %}{% if current_category %}&category={{ current_category }}{% endif %}">
+                                    <a class="page-link page-link-enhanced" href="?page={{ words.previous_page_number }}{% if current_query %}&q={{ current_query }}{% endif %}{% if current_language %}&lang={{ current_language }}{% endif %}{% if current_category %}&category={{ current_category }}{% endif %}">
                                         <i class="fas fa-chevron-left"></i>
                                     </a>
                                 </li>
@@ -154,11 +458,11 @@
                             {% for num in words.paginator.page_range %}
                                 {% if words.number == num %}
                                     <li class="page-item active">
-                                        <span class="page-link">{{ num }}</span>
+                                        <span class="page-link page-link-enhanced">{{ num }}</span>
                                     </li>
                                 {% elif num > words.number|add:'-3' and num < words.number|add:'3' %}
                                     <li class="page-item">
-                                        <a class="page-link" href="?page={{ num }}{% if current_query %}&q={{ current_query }}{% endif %}{% if current_language %}&lang={{ current_language }}{% endif %}{% if current_category %}&category={{ current_category }}{% endif %}">
+                                        <a class="page-link page-link-enhanced" href="?page={{ num }}{% if current_query %}&q={{ current_query }}{% endif %}{% if current_language %}&lang={{ current_language }}{% endif %}{% if current_category %}&category={{ current_category }}{% endif %}">
                                             {{ num }}
                                         </a>
                                     </li>
@@ -167,7 +471,7 @@
                             
                             {% if words.has_next %}
                                 <li class="page-item">
-                                    <a class="page-link" href="?page={{ words.next_page_number }}{% if current_query %}&q={{ current_query }}{% endif %}{% if current_language %}&lang={{ current_language }}{% endif %}{% if current_category %}&category={{ current_category }}{% endif %}">
+                                    <a class="page-link page-link-enhanced" href="?page={{ words.next_page_number }}{% if current_query %}&q={{ current_query }}{% endif %}{% if current_language %}&lang={{ current_language }}{% endif %}{% if current_category %}&category={{ current_category }}{% endif %}">
                                         <i class="fas fa-chevron-right"></i>
                                     </a>
                                 </li>
@@ -177,10 +481,10 @@
                 {% endif %}
                 
             {% else %}
-                <div class="text-center py-5">
-                    <i class="fas fa-search fa-3x text-muted mb-3"></i>
-                    <h4>Слова не найдены</h4>
-                    <p class="text-muted">
+                <div class="empty-state">
+                    <i class="fas fa-search empty-icon"></i>
+                    <h4 class="empty-title">Слова не найдены</h4>
+                    <p class="empty-text">
                         {% if current_query %}
                             По запросу "{{ current_query }}" ничего не найдено.
                         {% else %}
@@ -188,8 +492,8 @@
                         {% endif %}
                     </p>
                     {% if user.is_staff %}
-                        <a href="{% url 'admin:dictionary_word_add' %}" class="btn btn-primary">
-                            <i class="fas fa-plus"></i> Добавить слово
+                        <a href="{% url 'admin:dictionary_word_add' %}" class="detail-button">
+                            <i class="fas fa-plus mr-1"></i> Добавить слово
                         </a>
                     {% endif %}
                 </div>
@@ -197,4 +501,66 @@
         </div>
     </div>
 </div>
-{% endblock %} 
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Поэтапная анимация карточек
+    document.addEventListener('DOMContentLoaded', function() {
+        const cards = document.querySelectorAll('.word-card-animate');
+        
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+        
+        const observer = new IntersectionObserver(function(entries) {
+            entries.forEach((entry, index) => {
+                if (entry.isIntersecting) {
+                    setTimeout(() => {
+                        entry.target.classList.add('show');
+                    }, index * 50);
+                }
+            });
+        }, observerOptions);
+        
+        cards.forEach(card => {
+            observer.observe(card);
+        });
+        
+        // Улучшенная обработка фильтров
+        const filterSelects = document.querySelectorAll('.filter-select');
+        filterSelects.forEach(select => {
+            select.addEventListener('change', function() {
+                // Показываем индикатор загрузки
+                const loadingIndicator = document.createElement('div');
+                loadingIndicator.className = 'loading-indicator';
+                loadingIndicator.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Загрузка...';
+                loadingIndicator.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.8); color: white; padding: 20px; border-radius: 8px; z-index: 9999;';
+                document.body.appendChild(loadingIndicator);
+                
+                // Добавляем небольшую задержку для лучшего UX
+                setTimeout(() => {
+                    this.form.submit();
+                }, 100);
+            });
+        });
+        
+        // Обработка ошибок в формах фильтров
+        const filterForms = document.querySelectorAll('form[method="GET"]');
+        filterForms.forEach(form => {
+            form.addEventListener('submit', function(e) {
+                // Проверяем, что все скрытые поля присутствуют
+                const inputs = this.querySelectorAll('input[type="hidden"]');
+                inputs.forEach(input => {
+                    if (!input.value) {
+                        input.remove();
+                    }
+                });
+            });
+        });
+    });
+</script>
+{% endblock %}
+
