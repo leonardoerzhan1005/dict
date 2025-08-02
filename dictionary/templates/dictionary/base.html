@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="{{ user_language|default:'ru' }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Многоязычный словарь{% endblock %}</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #2a3f8a;       /* основной оттенок синего */
+            --primary-light: #435fae; /* более светлый оттенок */
+            --primary-dark: #1c2a5b;  /* более тёмный оттенок */
+            --secondary: #e0e5ec;     /* светлая подложка карточек */
+            --accent: #6377c4;        /* акцентный цвет для кнопок */
+            --text-light: #f7f7f7;    /* светлый цвет текста */
+            --text-dark: #1c1c1c;     /* основной цвет текста */
+        }
+        body {
+            background-color: var(--secondary);
+            color: var(--text-dark);
+            font-family: 'Inter', sans-serif;
+        }
+        .navbar {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        }
+        .navbar-brand, .nav-link, .navbar-nav .nav-link {
+            color: var(--text-light) !important;
+        }
+        .navbar .nav-link:hover {
+            color: var(--accent) !important;
+        }
+        .search-box {
+            background: linear-gradient(135deg, var(--primary-light), var(--primary));
+            padding: 3rem 0;
+            
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        .alphabet-filter .btn {
+            min-width: 2.5rem;
+            height: 2.5rem;
+            padding: 0.5rem 1rem 0.5rem 1rem;
+            margin: 0.15rem;
+            background-color: var(--secondary);
+            border-color: var(--primary);
+            color: var(--primary-dark);
+            transition: all 0.3s ease;
+        }
+        .alphabet-filter .btn:hover {
+            background-color: var(--primary);
+            color: var(--text-light);
+        }
+        .word-card {
+            background-color: var(--text-light);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            
+        }
+        .word-card:hover {
+            border: 1px solid var(--primary);
+            border-radius: 1rem;
+            box-shadow: 0 6px 10px rgba(0,0,0,0.12);
+        }
+        .language-badge {
+            background-color: var(--primary);
+            color: var(--text-light);
+            border-radius: 0.5rem;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+        }
+        .btn-primary {
+            background-color: var(--primary);
+            border-color: var(--primary-dark);
+        }
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+            border-color: var(--primary);
+        }
+        .btn-outline-danger {
+            color: var(--primary-dark);
+            border-color: var(--primary-dark);
+        }
+        .btn-danger {
+            background-color: var(--primary-dark);
+            border-color: var(--primary-dark);
+        }
+        footer {
+            background-color: var(--primary-dark);
+            color: var(--text-light);
+        }
+        footer a {
+            color: var(--accent);
+        }
+    </style>
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Навигация -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'dictionary:home' %}">
+                <i class="fas fa-book"></i> Словарь
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'dictionary:home' %}">Главная</a>
+                    </li>
+                    {% if user.is_authenticated %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'dictionary:profile' %}">Профиль</a>
+                        </li>
+                        {% if user.is_staff %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'dictionary:translation_dashboard' %}">Переводы</a>
+                            </li>
+                        {% endif %}
+                    {% endif %}
+                </ul>
+                
+                <!-- Переключатель языка и аутентификация -->
+                <div class="navbar-nav">
+                    <div class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-globe"></i> 
+                            {% if user_language == 'ru' %}Русский
+                            {% elif user_language == 'kk' %}Қазақша
+                            {% elif user_language == 'en' %}English
+                            {% elif user_language == 'tr' %}Türkçe
+                            {% else %}Русский{% endif %}
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="?lang=ru">Русский</a></li>
+                            <li><a class="dropdown-item" href="?lang=kk">Қазақша</a></li>
+                            <li><a class="dropdown-item" href="?lang=en">English</a></li>
+                            <li><a class="dropdown-item" href="?lang=tr">Türkçe</a></li>
+                        </ul>
+                    </div>
+                    
+                    {% if user.is_authenticated %}
+                        <div class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-user"></i> {{ user.username }}
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="{% url 'dictionary:profile' %}">
+                                    <i class="fas fa-user"></i> Профиль
+                                </a></li>
+                                {% if user.is_staff %}
+                                    <li><a class="dropdown-item" href="{% url 'admin:index' %}">
+                                        <i class="fas fa-cog"></i> Админка
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{% url 'dictionary:translation_dashboard' %}">
+                                        <i class="fas fa-language"></i> Переводы
+                                    </a></li>
+                                {% endif %}
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{% url 'dictionary:logout' %}">
+                                    <i class="fas fa-sign-out-alt"></i> Выйти
+                                </a></li>
+                            </ul>
+                        </div>
+                    {% else %}
+                        <div class="navbar-nav">
+                            <a class="nav-link" href="{% url 'dictionary:login' %}">
+                                <i class="fas fa-sign-in-alt"></i> Войти
+                            </a>
+                            <a class="nav-link" href="{% url 'dictionary:register' %}">
+                                <i class="fas fa-user-plus"></i> Регистрация
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Основной контент -->
+    <main>
+        <!-- Сообщения -->
+        {% if messages %}
+            <div class="container mt-3">
+                {% for message in messages %}
+                    <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-light py-4 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>Многоязычный словарь</h5>
+                    <p>Поиск слов на русском, казахском, английском и турецком языках</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p>&copy; 2024 Словарь. Все права защищены.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- jQuery для AJAX -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <script>
+        // AJAX поиск с автодополнением
+        $(document).ready(function() {
+            let searchTimeout;
+            
+            $('#search-input').on('input', function() {
+                const query = $(this).val().trim();
+                const language = $('#language-filter').val();
+                
+                clearTimeout(searchTimeout);
+                
+                if (query.length >= 2) {
+                    searchTimeout = setTimeout(function() {
+                        $.get('/search/ajax/', {
+                            q: query,
+                            lang: language
+                        })
+                        .done(function(data) {
+                            const suggestions = $('#search-suggestions');
+                            suggestions.empty();
+                            
+                            data.results.forEach(function(item) {
+                                suggestions.append(`
+                                    <div class="suggestion-item" data-url="${item.url}">
+                                        <strong>${item.word}</strong> 
+                                        <span class="badge bg-secondary language-badge">${item.language}</span>
+                                        <br>
+                                        <small class="text-muted">${item.meaning}</small>
+                                    </div>
+                                `);
+                            });
+                            
+                            if (data.results.length > 0) {
+                                suggestions.show();
+                            } else {
+                                suggestions.hide();
+                            }
+                        });
+                    }, 300);
+                } else {
+                    $('#search-suggestions').hide();
+                }
+            });
+            
+            // Клик по предложению
+            $(document).on('click', '.suggestion-item', function() {
+                window.location.href = $(this).data('url');
+            });
+            
+            // Скрыть предложения при клике вне
+            $(document).on('click', function(e) {
+                if (!$(e.target).closest('#search-container').length) {
+                    $('#search-suggestions').hide();
+                }
+            });
+            
+            // Добавление в избранное
+            $('.favorite-btn').on('click', function(e) {
+                e.preventDefault();
+                const btn = $(this);
+                const wordId = btn.data('word-id');
+                
+                $.post(`/favorites/add/${wordId}/`)
+                .done(function(data) {
+                    if (data.status === 'added') {
+                        btn.removeClass('btn-outline-danger').addClass('btn-danger');
+                        btn.html('<i class="fas fa-heart"></i>');
+                    } else {
+                        btn.removeClass('btn-danger').addClass('btn-outline-danger');
+                        btn.html('<i class="far fa-heart"></i>');
+                    }
+                });
+            });
+        });
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html> 

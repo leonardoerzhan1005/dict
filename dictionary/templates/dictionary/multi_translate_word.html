@@ -1,0 +1,211 @@
+{% extends "dictionary/base.html" %}
+{% load dictionary_extras %}
+
+{% block title %}Мультиперевод - {{ word.word }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="fas fa-language"></i> Мультиперевод слова: <strong>{{ word.word }}</strong></h1>
+        <div>
+            <a href="{% url 'dictionary:word_translations_dashboard' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Назад к списку
+            </a>
+        </div>
+    </div>
+
+    <!-- Информация о слове -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h6><i class="fas fa-info-circle"></i> Информация о слове</h6>
+                </div>
+                <div class="card-body">
+                    <p><strong>Слово:</strong> {{ word.word }}</p>
+                    <p><strong>Значение:</strong> {{ word.meaning }}</p>
+                    <p><strong>Язык:</strong> {{ word.language.name }} ({{ word.language.code }})</p>
+                    <p><strong>Категория:</strong> 
+                        {% if word.category %}
+                            {{ word.category.code }}
+                        {% else %}
+                            <span class="text-muted">Не указана</span>
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h6><i class="fas fa-chart-bar"></i> Существующие переводы</h6>
+                </div>
+                <div class="card-body">
+                    {% if existing_translations %}
+                        {% for lang_code, translation in existing_translations.items %}
+                            <span class="badge bg-success me-2 mb-2">
+                                {{ lang_code }}: {{ translation }}
+                            </span>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted">Нет существующих переводов</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if available_languages %}
+    <form method="post" id="multi-translate-form">
+        {% csrf_token %}
+        
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5><i class="fas fa-language"></i> Перевод на несколько языков</h5>
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="selectAllLanguages()">
+                        <i class="fas fa-check-double"></i> Выбрать все языки
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="deselectAllLanguages()">
+                        <i class="fas fa-times"></i> Снять выбор
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% for language in available_languages %}
+                    <div class="col-md-6 mb-3">
+                        <div class="card border-primary">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0">
+                                    <input type="checkbox" 
+                                           class="language-checkbox" 
+                                           name="target_languages" 
+                                           value="{{ language.code }}"
+                                           id="lang_{{ language.code }}">
+                                    <label for="lang_{{ language.code }}" class="mb-0 ms-2">
+                                        <i class="fas fa-flag"></i> {{ language.name }} ({{ language.code }})
+                                    </label>
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="form-group">
+                                    <label for="translation_{{ language.code }}" class="form-label">
+                                        Перевод на {{ language.name }}
+                                    </label>
+                                    <input type="text" 
+                                           class="form-control translation-input" 
+                                           id="translation_{{ language.code }}"
+                                           placeholder="Введите перевод на {{ language.name }}"
+                                           data-language="{{ language.code }}">
+                                    <div class="form-text">Введите перевод для этого языка</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <input type="hidden" name="translations_data" id="translations-data">
+                
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save"></i> Сохранить все переводы
+                    </button>
+                    <a href="{% url 'dictionary:word_translations_dashboard' %}" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Отмена
+                    </a>
+                </div>
+            </div>
+        </div>
+    </form>
+    {% else %}
+    <div class="card">
+        <div class="card-body text-center py-4">
+            <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+            <h5 class="text-success">Слово уже переведено на все языки!</h5>
+            <p class="text-muted">Нет доступных языков для перевода</p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+// Выбор всех языков
+function selectAllLanguages() {
+    document.querySelectorAll('.language-checkbox').forEach(checkbox => {
+        checkbox.checked = true;
+    });
+}
+
+// Снятие выбора со всех языков
+function deselectAllLanguages() {
+    document.querySelectorAll('.language-checkbox').forEach(checkbox => {
+        checkbox.checked = false;
+    });
+}
+
+// Подготовка данных для отправки
+document.getElementById('multi-translate-form').addEventListener('submit', function(e) {
+    const translations = {};
+    const selectedLanguages = document.querySelectorAll('.language-checkbox:checked');
+    
+    selectedLanguages.forEach(checkbox => {
+        const langCode = checkbox.value;
+        const translationInput = document.querySelector(`#translation_${langCode}`);
+        
+        if (translationInput.value.trim()) {
+            translations[langCode] = translationInput.value.trim();
+        }
+    });
+    
+    document.getElementById('translations-data').value = JSON.stringify(translations);
+    
+    if (Object.keys(translations).length === 0) {
+        e.preventDefault();
+        alert('Пожалуйста, выберите языки и введите переводы');
+    }
+});
+
+// Автоматический выбор языка при вводе перевода
+document.querySelectorAll('.translation-input').forEach(input => {
+    input.addEventListener('input', function() {
+        const langCode = this.dataset.language;
+        const checkbox = document.querySelector(`#lang_${langCode}`);
+        
+        if (this.value.trim()) {
+            checkbox.checked = true;
+        }
+    });
+});
+
+// Копирование значения с исходного слова
+function copyOriginalMeaning() {
+    const originalMeaning = '{{ word.meaning }}';
+    if (originalMeaning) {
+        document.querySelectorAll('.translation-input').forEach(input => {
+            if (!input.value.trim()) {
+                input.value = originalMeaning;
+                const langCode = input.dataset.language;
+                const checkbox = document.querySelector(`#lang_${langCode}`);
+                checkbox.checked = true;
+            }
+        });
+    }
+}
+</script>
+
+<style>
+.card-header h6 {
+    margin: 0;
+    color: #495057;
+}
+.form-group label {
+    font-weight: 500;
+    color: #495057;
+}
+.border-primary {
+    border-color: #0d6efd !important;
+}
+</style>
+{% endblock %} 

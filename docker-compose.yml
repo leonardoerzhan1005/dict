@@ -1,0 +1,38 @@
+services:
+  web:
+    build: .
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+      - static:/app/staticfiles
+      - media:/app/media
+    command: sh -c "python manage.py migrate && gunicorn dictionary_django.wsgi:application --bind 0.0.0.0:8000"
+    networks:
+      - app-network
+
+  nginx:
+    image: nginx:latest
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - /etc/letsencrypt/:/etc/letsencrypt/
+      - ./acme-challenge:/var/www/html
+      - static:/app/staticfiles
+      - media:/app/media
+    depends_on:
+      - web
+    networks:
+      - app-network
+
+volumes:
+  static:
+  media:
+
+networks:
+  app-network:
+    driver: bridge

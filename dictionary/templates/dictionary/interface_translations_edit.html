@@ -1,0 +1,70 @@
+{% extends "dictionary/base.html" %}
+{% load dictionary_extras %}
+
+{% block title %}Редактирование переводов интерфейса{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Редактирование переводов интерфейса</h1>
+        <a href="{% url 'dictionary:translation_dashboard' %}" class="btn btn-secondary">← Назад к дашборду</a>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+        
+        <div class="card">
+            <div class="card-header">
+                <h5>Переводы интерфейса для всех языков</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th style="width: 200px;">Ключ</th>
+                                {% for language in languages %}
+                                <th>{{ language.name }} ({{ language.code }})</th>
+                                {% endfor %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for key, translations in translations.items %}
+                            <tr>
+                                <td><strong>{{ key }}</strong></td>
+                                {% for language in languages %}
+                                <td>
+                                    <textarea class="form-control" 
+                                              name="value_{{ key }}_{{ language.code }}"
+                                              rows="2"
+                                              placeholder="Перевод для {{ language.name }}">{{ translations|get_item:language.code|default:'' }}</textarea>
+                                </td>
+                                {% endfor %}
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <button type="submit" class="btn btn-primary">Сохранить все переводы</button>
+            <a href="{% url 'dictionary:translation_dashboard' %}" class="btn btn-secondary">Отмена</a>
+        </div>
+    </form>
+</div>
+
+<style>
+.table th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+}
+.table td {
+    vertical-align: middle;
+}
+.form-control {
+    font-size: 0.9rem;
+}
+</style>
+{% endblock %} 

@@ -1,0 +1,63 @@
+{% extends "dictionary/base.html" %}
+{% load dictionary_extras %}
+
+{% block title %}Редактирование переводов - {{ tag.code }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Редактирование переводов тега: <strong>{{ tag.code }}</strong></h1>
+        <a href="{% url 'dictionary:translation_dashboard' %}" class="btn btn-secondary">← Назад к дашборду</a>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+        
+        <div class="card">
+            <div class="card-header">
+                <h5>Переводы для всех языков</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% for language in languages %}
+                    <div class="col-md-6 mb-3">
+                        <div class="card">
+                            <div class="card-header">
+                                <h6>{{ language.name }} ({{ language.code }})</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="form-group">
+                                    <label for="name_{{ language.code }}">Название:</label>
+                                    <input type="text" 
+                                           class="form-control" 
+                                           id="name_{{ language.code }}" 
+                                           name="name_{{ language.code }}"
+                                           value="{{ translations|get_item:language.code|get_item:'name'|default:'' }}"
+                                           placeholder="Введите название на {{ language.name }}">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <button type="submit" class="btn btn-primary">Сохранить все переводы</button>
+            <a href="{% url 'dictionary:translation_dashboard' %}" class="btn btn-secondary">Отмена</a>
+        </div>
+    </form>
+</div>
+
+<style>
+.card-header h6 {
+    margin: 0;
+    color: #495057;
+}
+.form-group label {
+    font-weight: 500;
+    color: #495057;
+}
+</style>
+{% endblock %} 

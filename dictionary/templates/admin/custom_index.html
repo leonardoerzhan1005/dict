@@ -1,0 +1,18 @@
+{% extends "admin/index.html" %}
+{% load i18n %}
+
+{% block content %}
+<div class="module">
+    <h2>Управление переводами</h2>
+    <div class="description">
+        <p>Специальные инструменты для управления переводами терминов и интерфейса.</p>
+    </div>
+    <div class="object-tools">
+        <a href="{% url 'dictionary:translation_dashboard' %}" class="addlink">
+            📊 Дашборд переводов
+        </a>
+    </div>
+</div>
+
+{{ block.super }}
+{% endblock %} 

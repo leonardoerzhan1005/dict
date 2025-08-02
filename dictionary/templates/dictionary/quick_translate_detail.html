@@ -1,0 +1,423 @@
+{% extends "dictionary/base.html" %}
+{% load dictionary_extras %}
+
+{% block title %}{{ word.word }} - Детали термина{% endblock %}
+
+{% block extra_css %}
+<style>
+
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap");
+body {
+  font-family: "Poppins", sans-serif !important;
+
+}
+
+.term-header {
+    background: #686868;
+    color: white;
+    padding: 30px;
+    border-radius: 12px;
+    margin-bottom: 30px;
+}
+
+.translation-section {
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    overflow: hidden;
+}
+
+.translation-header {
+    background: #f8f9fa;
+    padding: 15px 20px;
+    border-bottom: 1px solid #dee2e6;
+    font-weight: bold;
+}
+
+.translation-content {
+    padding: 20px;
+}
+
+.translation-form {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    margin-top: 15px;
+}
+
+.language-flag {
+    font-size: 1.2em;
+    margin-right: 10px;
+}
+
+.status-indicator {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    margin-right: 10px;
+}
+
+.status-exists {
+    background: #28a745;
+}
+
+.status-missing {
+    background: #dc3545;
+}
+
+ 
+
+.btn-save {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    border: none;
+    color: white;
+    padding: 12px 30px;
+    border-radius: 25px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.btn-save:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+.tag-input {
+    border: 2px dashed #dee2e6;
+    border-radius: 8px;
+    padding: 10px;
+    transition: all 0.3s ease;
+}
+
+.tag-input:focus {
+    border-color: #007bff;
+    background: #f8f9fa;
+}
+
+.floating-actions {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+}
+
+.floating-actions .btn {
+    border-radius: 50px;
+    padding: 12px 24px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    margin-bottom: 10px;
+}
+
+ 
+
+
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap");
+
+
+
+.form-control {
+  padding-top: 33px;
+  position: relative;
+}
+
+.form-control {
+  -webkit-appearance: none;
+  appearance: none;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+  border: 6px solid #9fa6b3;
+  background: #fff;
+  border-radius: 0;
+  color: #222;
+  font-family: "Poppins", sans-serif;
+  font-size: 20px;
+  font-weight: 400;
+  outline: none;
+  padding: 30px 15px 2px 15px;
+  transition-property: border, padding;
+  transition-duration: 500ms;
+  transition-timing-function: ease;
+  width: 100%;
+}
+
+.form-control:focus {
+  border-color: #2d9ae3;
+  padding-bottom: 16px;
+  padding-top: 16px;
+}
+
+.form-control + .form-label {
+  background: #9fa6b3 !important;
+  color: #fff !important;
+  font-weight: 500 !important;
+  left: 0 !important;
+  padding: 5px 20px 5px 20px;
+  position: absolute !important;
+  top: 33px !important;
+  transition-property: top, background !important;
+  transition-duration: 500ms !important;
+  transition-timing-function: ease !important;
+}
+
+.form-control:focus + .form-label  {
+  background: #2d9ae3 !important;
+  top: 0 !important;
+}
+
+
+
+
+</style> 
+
+   
+
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <!-- Заголовок термина -->
+    <div class="term-header">
+        <div class="d-flex justify-content-between align-items-start">
+            <div>
+                <h1 class="mb-2">{{ word.word }}</h1>
+                <p class="mb-0">{{ word.meaning|truncatechars:200 }}</p>
+            </div>
+            <div class="text-end">
+                <span class="badge bg-light text-dark fs-6">{{ word.language.name }}</span>
+                {% if word.category %}
+                    <span class="badge bg-secondary fs-6">{{ word.category.code }}</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <form method="post" id="term-form">
+        {% csrf_token %}
+        
+        <!-- Основная информация -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5><i class="fas fa-info-circle"></i> Основная информация</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <label for="category" class="form-label">Категория</label>
+                        <select class="form-select" id="category" name="category">
+                            <option value="">Выберите категорию</option>
+                            {% for category in categories %}
+                            <option value="{{ category.id }}" 
+                                    {% if word.category.id == category.id %}selected{% endif %}>
+                                {{ category.code }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="tags" class="form-label">Теги (разделяйте запятыми)</label>
+                        <input type="text" class="form-control tag-input" id="tags" name="tags"
+                               placeholder="договор, обязательства, соглашение"
+                               value="{% for tag in current_tags %}{{ tag.code }}{% if not forloop.last %}, {% endif %}{% endfor %}">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Переводы -->
+        <div class="row">
+            {% for language in languages %}
+            <div class="col-md-6 mb-4">
+                <div class="translation-section">
+                    <div class="translation-header">
+                        <span class="language-flag">
+                            {% if language.code == 'ru' %}🇷🇺{% elif language.code == 'kk' %}🇰🇿{% elif language.code == 'tr' %}🇹🇷{% elif language.code == 'en' %}🇺🇸{% endif %}
+                        </span>
+                        {{ language.name }}
+                        <span class="status-indicator {% if translations|get_item:language.code|get_item:'exists' %}status-exists{% else %}status-missing{% endif %}"></span>
+                        {% if translations|get_item:language.code|get_item:'exists' %}
+                            <span class="badge bg-success">✔️ Есть перевод</span>
+                        {% else %}
+                            <span class="badge bg-danger"> Перевод отсутствует</span>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="translation-content">
+                        {% with translation_data=translations|get_item:language.code %}
+                        {% if translation_data.exists %}
+                            <!-- Существующий перевод -->
+                            <div class="mb-3">
+                                <label class="form-label">Перевод</label>
+                                <input type="text" class="form-control" 
+                                       name="translation_{{ language.code }}"
+                                       value="{{ translation_data.word.word }}"
+                                       placeholder="Введите перевод...">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">📝 Описание</label>
+                                <textarea class="form-control" rows="4" 
+                                          name="description_{{ language.code }}"
+                                          placeholder="Юридическое определение или контекст...">{{ translation_data.word.meaning }}</textarea>
+                            </div>
+                        {% else %}
+                            <!-- Отсутствующий перевод -->
+                            <div class="text-center py-4">
+                                <p class="text-muted mb-3">Перевод отсутствует</p>
+                                <button type="button" class="btn btn-outline-primary" 
+                                        onclick="showTranslationForm('{{ language.code }}')">
+                                    <i class="fas fa-plus"></i> Добавить перевод на {{ language.name }}
+                                </button>
+                            </div>
+                            
+                            <!-- Скрытая форма для нового перевода -->
+                            <div class="translation-form" id="form_{{ language.code }}" style="display: none;">
+                                <div class="mb-3">
+                                    <label class="form-label">Перевод</label>
+                                    <input type="text" class="form-control" 
+                                           name="translation_{{ language.code }}"
+                                           placeholder="Введите перевод...">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">📝 Описание</label>
+                                    <textarea class="form-control" rows="4" 
+                                              name="description_{{ language.code }}"
+                                              placeholder="Юридическое определение или контекст..."></textarea>
+                                </div>
+                                <button type="button" class="btn btn-outline-secondary btn-sm" 
+                                        onclick="hideTranslationForm('{{ language.code }}')">
+                                    <i class="fas fa-times"></i> Отмена
+                                </button>
+                            </div>
+                        {% endif %}
+                        {% endwith %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Кнопки действий -->
+        <div class="card mt-4">
+            <div class="card-body text-center">
+                <button type="submit" class="btn btn-save btn-lg">
+                    <i class="fas fa-save"></i> Сохранить изменения
+                </button>
+                <a href="{% url 'dictionary:quick_translate' %}" class="btn btn-outline-secondary btn-lg ms-3">
+                    <i class="fas fa-arrow-left"></i> Назад к списку
+                </a>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Плавающие кнопки действий -->
+<div class="floating-actions">
+    <button type="button" class="btn btn-success" onclick="submitForm()">
+        <i class="fas fa-save"></i> Сохранить
+    </button>
+    <a href="{% url 'dictionary:word_detail' word.id %}" class="btn btn-info">
+        <i class="fas fa-eye"></i> Просмотр
+    </a>
+</div>
+
+<script>
+// Показать форму перевода
+function showTranslationForm(languageCode) {
+    const form = document.getElementById(`form_${languageCode}`);
+    const button = event.target.closest('button');
+    
+    if (form) {
+        form.style.display = 'block';
+        button.style.display = 'none';
+        
+        // Фокус на первое поле
+        const firstInput = form.querySelector('input');
+        if (firstInput) {
+            firstInput.focus();
+        }
+    }
+}
+
+// Скрыть форму перевода
+function hideTranslationForm(languageCode) {
+    const form = document.getElementById(`form_${languageCode}`);
+    const button = event.target.closest('.translation-content').querySelector('button');
+    
+    if (form) {
+        form.style.display = 'none';
+        // Очищаем поля
+        form.querySelectorAll('input, textarea').forEach(field => {
+            field.value = '';
+        });
+    }
+    
+    if (button) {
+        button.style.display = 'block';
+    }
+}
+
+// Отправка формы
+function submitForm() {
+    document.getElementById('term-form').submit();
+}
+
+// Автодополнение тегов
+document.addEventListener('DOMContentLoaded', function() {
+    const tagInput = document.getElementById('tags');
+    const allTags = [{% for tag in all_tags %}'{{ tag.code }}'{% if not forloop.last %}, {% endif %}{% endfor %}];
+    
+    if (tagInput) {
+        tagInput.addEventListener('input', function() {
+            const value = this.value;
+            const lastTag = value.split(',').pop().trim();
+            
+            if (lastTag.length > 0) {
+                const suggestions = allTags.filter(tag => 
+                    tag.toLowerCase().startsWith(lastTag.toLowerCase()) && 
+                    !value.toLowerCase().includes(tag.toLowerCase())
+                );
+                
+                // Здесь можно добавить выпадающий список с предложениями
+                if (suggestions.length > 0) {
+                    console.log('Предложения:', suggestions);
+                }
+            }
+        });
+    }
+});
+
+// Валидация формы
+document.getElementById('term-form').addEventListener('submit', function(e) {
+    const category = document.getElementById('category').value;
+    const tags = document.getElementById('tags').value;
+    
+    if (!category) {
+        e.preventDefault();
+        alert('Пожалуйста, выберите категорию');
+        return;
+    }
+    
+    if (!tags.trim()) {
+        e.preventDefault();
+        alert('Пожалуйста, добавьте хотя бы один тег');
+        return;
+    }
+    
+    // Проверяем, что есть хотя бы один перевод
+    const translationInputs = document.querySelectorAll('input[name^="translation_"]');
+    let hasTranslation = false;
+    
+    translationInputs.forEach(input => {
+        if (input.value.trim()) {
+            hasTranslation = true;
+        }
+    });
+    
+    if (!hasTranslation) {
+        if (!confirm('Вы не добавили ни одного перевода. Продолжить?')) {
+            e.preventDefault();
+            return;
+        }
+    }
+});
+</script>
+{% endblock %} 

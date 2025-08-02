@@ -1,0 +1,219 @@
+{% extends "dictionary/base.html" %}
+{% load dictionary_extras %}
+
+{% block title %}Редактирование переводов - {{ word.word }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Редактирование переводов слова: <strong>{{ word.word }}</strong></h1>
+        <div>
+            <a href="{% url 'dictionary:word_translations_dashboard' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Назад к списку
+            </a>
+        </div>
+    </div>
+
+    <!-- Информация о слове -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h6><i class="fas fa-info-circle"></i> Информация о слове</h6>
+                </div>
+                <div class="card-body">
+                    <p><strong>Слово:</strong> {{ word.word }}</p>
+                    <p><strong>Значение:</strong></p>
+                    <div class="border p-3 bg-light">
+                        {{ word.meaning|linebreaks }}
+                    </div>
+                    <p><strong>Язык:</strong> {{ word.language.name }} ({{ word.language.code }})</p>
+                    <p><strong>Категория:</strong> 
+                        {% if word.category %}
+                            {{ word.category.code }}
+                        {% else %}
+                            <span class="text-muted">Не указана</span>
+                        {% endif %}
+                    </p>
+                    <p><strong>Статус:</strong> 
+                        <span class="badge {% if word.status == 'approved' %}bg-success{% elif word.status == 'pending' %}bg-warning{% else %}bg-danger{% endif %}">
+                            {{ word.get_status_display }}
+                        </span>
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h6><i class="fas fa-chart-bar"></i> Статистика переводов</h6>
+                </div>
+                <div class="card-body">
+                    <p><strong>Всего переводов:</strong> {{ word.from_translations.count }}</p>
+                    <p><strong>Языки переводов:</strong>
+                        {% for translation in word.from_translations.all %}
+                            <span class="badge bg-info">{{ translation.to_word.language.code }}</span>
+                        {% empty %}
+                            <span class="text-muted">Нет переводов</span>
+                        {% endfor %}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <form method="post" id="translation-form">
+        {% csrf_token %}
+        
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-language"></i> Переводы на другие языки</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% for language in languages %}
+                    {% if language.id != word.language.id %}
+                    <div class="col-md-6 mb-3">
+                        <div class="card {% if existing_translations|get_item:language.code|get_item:'word' %}border-success{% else %}border-warning{% endif %}">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0">
+                                    <i class="fas fa-flag"></i> {{ language.name }} ({{ language.code }})
+                                </h6>
+                                <span class="badge {% if existing_translations|get_item:language.code|get_item:'word' %}bg-success{% else %}bg-warning{% endif %}">
+                                    {% if existing_translations|get_item:language.code|get_item:'word' %}Переведено{% else %}Не переведено{% endif %}
+                                </span>
+                            </div>
+                            <div class="card-body">
+                                <div class="form-group mb-3">
+                                    <label for="translation_word_{{ language.code }}" class="form-label">
+                                        Перевод слова <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="text" 
+                                           class="form-control translation-field" 
+                                           id="translation_word_{{ language.code }}" 
+                                           name="translation_word_{{ language.code }}"
+                                           value="{{ existing_translations|get_item:language.code|get_item:'word'|default:'' }}"
+                                           placeholder="Введите перевод на {{ language.name }}"
+                                           data-language="{{ language.code }}">
+                                    <div class="form-text">Обязательное поле</div>
+                                </div>
+                                <div class="form-group mb-3">
+                                    <label for="translation_meaning_{{ language.code }}" class="form-label">Значение</label>
+                                    <textarea class="form-control translation-field" 
+                                              id="translation_meaning_{{ language.code }}" 
+                                              name="translation_meaning_{{ language.code }}"
+                                              rows="3"
+                                              placeholder="Введите значение на {{ language.name }}"
+                                              data-language="{{ language.code }}">{{ existing_translations|get_item:language.code|get_item:'meaning'|default:'' }}</textarea>
+                                    <div class="form-text">Поддерживает многострочный текст</div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="note_{{ language.code }}" class="form-label">Примечание</label>
+                                    <textarea class="form-control translation-field" 
+                                              id="note_{{ language.code }}" 
+                                              name="note_{{ language.code }}"
+                                              rows="2"
+                                              placeholder="Дополнительная информация"
+                                              data-language="{{ language.code }}">{{ existing_translations|get_item:language.code|get_item:'note'|default:'' }}</textarea>
+                                    <div class="form-text">Необязательное поле</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> Сохранить все переводы
+            </button>
+            <a href="{% url 'dictionary:word_translations_dashboard' %}" class="btn btn-secondary">
+                <i class="fas fa-times"></i> Отмена
+            </a>
+        </div>
+    </form>
+</div>
+
+<script>
+// Валидация формы
+document.getElementById('translation-form').addEventListener('submit', function(e) {
+    const requiredFields = document.querySelectorAll('input[name^="translation_word_"]');
+    let hasErrors = false;
+    
+    requiredFields.forEach(field => {
+        if (!field.value.trim()) {
+            field.classList.add('is-invalid');
+            hasErrors = true;
+        } else {
+            field.classList.remove('is-invalid');
+        }
+    });
+    
+    if (hasErrors) {
+        e.preventDefault();
+        alert('Пожалуйста, заполните все обязательные поля (отмечены звездочкой)');
+    }
+});
+
+// Обновление статуса при вводе
+document.querySelectorAll('.translation-field').forEach(field => {
+    field.addEventListener('input', function() {
+        const card = this.closest('.card');
+        const badge = card.querySelector('.badge');
+        
+        if (this.name.startsWith('translation_word_') && this.value.trim()) {
+            card.classList.remove('border-warning');
+            card.classList.add('border-success');
+            if (badge) {
+                badge.textContent = 'Переведено';
+                badge.classList.remove('bg-warning');
+                badge.classList.add('bg-success');
+            }
+        } else if (this.name.startsWith('translation_word_') && !this.value.trim()) {
+            card.classList.remove('border-success');
+            card.classList.add('border-warning');
+            if (badge) {
+                badge.textContent = 'Не переведено';
+                badge.classList.remove('bg-success');
+                badge.classList.add('bg-warning');
+            }
+        }
+    });
+});
+
+// Копирование значения с исходного слова
+function copyOriginalMeaning() {
+    const originalMeaning = `{{ word.meaning|escapejs }}`;
+    if (originalMeaning) {
+        document.querySelectorAll('textarea[name^="translation_meaning_"]').forEach(textarea => {
+            if (!textarea.value.trim()) {
+                textarea.value = originalMeaning;
+            }
+        });
+    }
+}
+</script>
+
+<style>
+.card-header h6 {
+    margin: 0;
+    color: #495057;
+}
+.form-group label {
+    font-weight: 500;
+    color: #495057;
+}
+.border-success {
+    border-color: #28a745 !important;
+}
+.border-warning {
+    border-color: #ffc107 !important;
+}
+.is-invalid {
+    border-color: #dc3545 !important;
+}
+</style>
+{% endblock %} 

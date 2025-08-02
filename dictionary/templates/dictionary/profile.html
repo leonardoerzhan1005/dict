@@ -1,0 +1,77 @@
+{% extends 'dictionary/base.html' %}
+
+{% block title %}Профиль - Многоязычный словарь{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4><i class="fas fa-user"></i> Профиль пользователя</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Основная информация</h6>
+                            <p><strong>Имя пользователя:</strong> {{ user.username }}</p>
+                            <p><strong>Email:</strong> {{ user.email|default:"Не указан" }}</p>
+                            <p><strong>Имя:</strong> {{ user.first_name|default:"Не указано" }}</p>
+                            <p><strong>Фамилия:</strong> {{ user.last_name|default:"Не указана" }}</p>
+                            <p><strong>Дата регистрации:</strong> {{ user.date_joined|date:"d.m.Y H:i" }}</p>
+                            <p><strong>Последний вход:</strong> {{ user.last_login|date:"d.m.Y H:i"|default:"Никогда" }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Статистика</h6>
+                            <p><strong>Статус:</strong> 
+                                {% if user.is_staff %}
+                                    <span class="badge bg-success">Администратор</span>
+                                {% elif user.is_active %}
+                                    <span class="badge bg-primary">Активный пользователь</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Неактивный</span>
+                                {% endif %}
+                            </p>
+                            {% if user.is_staff %}
+                                <p><strong>Доступ к админке:</strong> 
+                                    <a href="{% url 'admin:index' %}" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-cog"></i> Админка
+                                    </a>
+                                </p>
+                                <p><strong>Управление переводами:</strong> 
+                                    <a href="{% url 'dictionary:translation_dashboard' %}" class="btn btn-sm btn-outline-info">
+                                        <i class="fas fa-language"></i> Переводы
+                                    </a>
+                                </p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h6>Действия</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'dictionary:home' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-home"></i> На главную
+                        </a>
+                        {% if user.is_staff %}
+                            <a href="{% url 'admin:dictionary_word_add' %}" class="btn btn-outline-success">
+                                <i class="fas fa-plus"></i> Добавить слово
+                            </a>
+                        {% endif %}
+                        <a href="{% url 'dictionary:logout' %}" class="btn btn-outline-danger">
+                            <i class="fas fa-sign-out-alt"></i> Выйти
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,216 @@
+{% extends "dictionary/base.html" %}
+{% load dictionary_extras %}
+
+{% block title %}Массовый перевод слов{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="fas fa-language"></i> Массовый перевод слов</h1>
+        <div>
+            <a href="{% url 'dictionary:word_translations_dashboard' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Назад к списку
+            </a>
+        </div>
+    </div>
+
+    <!-- Фильтры -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5><i class="fas fa-filter"></i> Фильтры для выбора слов</h5>
+        </div>
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    <label for="source_lang" class="form-label">Исходный язык</label>
+                    <select class="form-select" id="source_lang" name="source_lang">
+                        <option value="">Выберите язык</option>
+                        {% for language in languages %}
+                        <option value="{{ language.code }}" 
+                                {% if source_language == language.code %}selected{% endif %}>
+                            {{ language.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="target_lang" class="form-label">Целевой язык</label>
+                    <select class="form-select" id="target_lang" name="target_lang">
+                        <option value="">Выберите язык</option>
+                        {% for language in languages %}
+                        <option value="{{ language.code }}" 
+                                {% if target_language == language.code %}selected{% endif %}>
+                            {{ language.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="category" class="form-label">Категория</label>
+                    <select class="form-select" id="category" name="category">
+                        <option value="">Все категории</option>
+                        {% for category in categories %}
+                        <option value="{{ category.id }}" 
+                                {% if category_id == category.id|stringformat:"s" %}selected{% endif %}>
+                            {{ category.code }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search"></i> Найти слова для перевода
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {% if words %}
+    <form method="post" id="bulk-translation-form">
+        {% csrf_token %}
+        
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5><i class="fas fa-list"></i> Слова для перевода ({{ words.count }})</h5>
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="selectAll()">Выбрать все</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="deselectAll()">Снять выбор</button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th width="50">
+                                    <input type="checkbox" id="select-all" onchange="toggleSelectAll()">
+                                </th>
+                                <th>Слово</th>
+                                <th>Значение</th>
+                                <th>Язык</th>
+                                <th>Категория</th>
+                                <th>Перевод</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for word in words %}
+                            <tr>
+                                <td>
+                                    <input type="checkbox" class="word-checkbox" name="word_ids" value="{{ word.id }}">
+                                </td>
+                                <td>
+                                    <strong>{{ word.word }}</strong>
+                                </td>
+                                <td>{{ word.meaning|truncatechars:50 }}</td>
+                                <td>
+                                    <span class="badge bg-info">{{ word.language.code }}</span>
+                                </td>
+                                <td>
+                                    {% if word.category %}
+                                        <span class="badge bg-secondary">{{ word.category.code }}</span>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <input type="text" 
+                                           class="form-control translation-input" 
+                                           name="translation_{{ word.id }}"
+                                           placeholder="Введите перевод"
+                                           data-word-id="{{ word.id }}"
+                                           data-target-lang="{{ target_language }}">
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <input type="hidden" name="translations_data" id="translations-data">
+                
+                <div class="mt-3">
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save"></i> Сохранить переводы
+                    </button>
+                </div>
+            </div>
+        </div>
+    </form>
+    {% else %}
+    <div class="card">
+        <div class="card-body text-center py-4">
+            <i class="fas fa-search fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted">Слова не найдены</h5>
+            <p class="text-muted">Попробуйте изменить параметры фильтрации</p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+// Выбор всех слов
+function selectAll() {
+    document.querySelectorAll('.word-checkbox').forEach(checkbox => {
+        checkbox.checked = true;
+    });
+    document.getElementById('select-all').checked = true;
+}
+
+// Снятие выбора со всех слов
+function deselectAll() {
+    document.querySelectorAll('.word-checkbox').forEach(checkbox => {
+        checkbox.checked = false;
+    });
+    document.getElementById('select-all').checked = false;
+}
+
+// Переключение выбора всех
+function toggleSelectAll() {
+    const selectAllCheckbox = document.getElementById('select-all');
+    const wordCheckboxes = document.querySelectorAll('.word-checkbox');
+    
+    wordCheckboxes.forEach(checkbox => {
+        checkbox.checked = selectAllCheckbox.checked;
+    });
+}
+
+// Подготовка данных для отправки
+document.getElementById('bulk-translation-form').addEventListener('submit', function(e) {
+    const translations = {};
+    const selectedWords = document.querySelectorAll('.word-checkbox:checked');
+    
+    selectedWords.forEach(checkbox => {
+        const wordId = checkbox.value;
+        const translationInput = document.querySelector(`input[name="translation_${wordId}"]`);
+        const targetLang = translationInput.dataset.targetLang;
+        
+        if (translationInput.value.trim()) {
+            translations[wordId] = {
+                translation: translationInput.value.trim(),
+                target_lang: targetLang
+            };
+        }
+    });
+    
+    document.getElementById('translations-data').value = JSON.stringify(translations);
+    
+    if (Object.keys(translations).length === 0) {
+        e.preventDefault();
+        alert('Пожалуйста, выберите слова и введите переводы');
+    }
+});
+
+// Автозаполнение переводов
+document.querySelectorAll('.translation-input').forEach(input => {
+    input.addEventListener('input', function() {
+        const wordId = this.dataset.wordId;
+        const checkbox = document.querySelector(`input[value="${wordId}"]`);
+        
+        if (this.value.trim()) {
+            checkbox.checked = true;
+        }
+    });
+});
+</script>
+{% endblock %} 

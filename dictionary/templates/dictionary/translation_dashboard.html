@@ -1,0 +1,346 @@
+{% extends "dictionary/base.html" %}
+{% load dictionary_extras %}
+
+{% block title %}Управление переводами{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="fas fa-language"></i> Управление переводами</h1>
+        <div>
+            <a href="{% url 'dictionary:word_translations_dashboard' %}" class="btn btn-primary me-2">
+                <i class="fas fa-book"></i> Переводы слов
+            </a>
+            <a href="{% url 'dictionary:translation_progress' %}" class="btn btn-info">
+                <i class="fas fa-chart-line"></i> Прогресс переводов
+            </a>
+        </div>
+    </div>
+    
+    <!-- Общая статистика -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body text-center">
+                    <h3>{{ total_categories }}</h3>
+                    <p class="mb-0">Всего категорий</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body text-center">
+                    <h3>{{ fully_translated_categories }}</h3>
+                    <p class="mb-0">Полностью переведено</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body text-center">
+                    <h3>{{ untranslated_categories }}</h3>
+                    <p class="mb-0">Без переводов</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body text-center">
+                    <h3>{{ total_languages }}</h3>
+                    <p class="mb-0">Языков</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Быстрые действия -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5><i class="fas fa-bolt"></i> Быстрые действия</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <form method="post" action="{% url 'dictionary:bulk_add_missing_translations' %}" style="display: inline;">
+                        {% csrf_token %}
+                        <input type="hidden" name="type" value="categories">
+                        <button type="submit" class="btn btn-success me-2">
+                            <i class="fas fa-plus"></i> Добавить все недостающие переводы категорий
+                        </button>
+                    </form>
+                </div>
+                <div class="col-md-6">
+                    <form method="post" action="{% url 'dictionary:bulk_add_missing_translations' %}" style="display: inline;">
+                        {% csrf_token %}
+                        <input type="hidden" name="type" value="tags">
+                        <button type="submit" class="btn btn-info">
+                            <i class="fas fa-plus"></i> Добавить все недостающие переводы тегов
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Руководство по мультипереводу -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5><i class="fas fa-question-circle"></i> Как использовать мультиперевод</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h6><i class="fas fa-language"></i> Мультиперевод одного слова:</h6>
+                    <ol>
+                        <li>Перейдите в <a href="{% url 'dictionary:word_translations_dashboard' %}">Управление переводами слов</a></li>
+                        <li>Найдите нужное слово</li>
+                        <li>Нажмите кнопку <strong>"Мультиперевод"</strong></li>
+                        <li>Выберите языки для перевода</li>
+                        <li>Введите переводы для каждого языка</li>
+                        <li>Сохраните все переводы одним кликом</li>
+                    </ol>
+                </div>
+                <div class="col-md-6">
+                    <h6><i class="fas fa-list"></i> Массовый мультиперевод:</h6>
+                    <ol>
+                        <li>Перейдите в <a href="{% url 'dictionary:bulk_multi_translate' %}">Массовый мультиперевод</a></li>
+                        <li>Выберите исходный язык и категорию</li>
+                        <li>Выберите целевые языки для перевода</li>
+                        <li>Выберите слова для перевода</li>
+                        <li>Введите переводы в таблице</li>
+                        <li>Сохраните все переводы одновременно</li>
+                    </ol>
+                </div>
+            </div>
+            
+            <hr>
+            
+            <div class="row">
+                <div class="col-12">
+                    <h6><i class="fas fa-edit"></i> Редактор значений:</h6>
+                    <div class="alert alert-info">
+                        <p><strong>Рекомендации по форматированию:</strong></p>
+                        <ul class="mb-0">
+                            <li>Используйте <strong>жирный текст</strong> для выделения важных терминов</li>
+                            <li>Используйте <em>курсив</em> для иностранных слов или примеров</li>
+                            <li>Создавайте списки для перечисления значений или примеров</li>
+                            <li>Добавляйте примеры предложений для лучшего понимания</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Категории -->
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5><i class="fas fa-tags"></i> Категории</h5>
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-outline-primary btn-sm" onclick="filterByStatus('all')">Все</button>
+                <button type="button" class="btn btn-outline-success btn-sm" onclick="filterByStatus('complete')">Полные</button>
+                <button type="button" class="btn btn-outline-warning btn-sm" onclick="filterByStatus('partial')">Частичные</button>
+                <button type="button" class="btn btn-outline-danger btn-sm" onclick="filterByStatus('empty')">Пустые</button>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped" id="categories-table">
+                    <thead>
+                        <tr>
+                            <th>Код</th>
+                            <th>Переводы</th>
+                            <th>Статус</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for category in categories %}
+                        <tr data-status="{% if category_stats|get_item:category.id|get_item:'percentage' == 100 %}complete{% elif category_stats|get_item:category.id|get_item:'percentage' == 0 %}empty{% else %}partial{% endif %}">
+                            <td><strong>{{ category.code }}</strong></td>
+                            <td>
+                                {% for translation in category.translations.all %}
+                                    <span class="badge bg-primary">{{ translation.language.code }}: {{ translation.name }}</span>
+                                {% empty %}
+                                    <span class="text-muted">Нет переводов</span>
+                                {% endfor %}
+                            </td>
+                            <td>
+                                {% with stats=category_stats|get_item:category.id %}
+                                    <div class="progress" style="height: 20px;">
+                                        <div class="progress-bar {% if stats.percentage == 100 %}bg-success{% elif stats.percentage == 0 %}bg-danger{% else %}bg-warning{% endif %}" 
+                                             role="progressbar" 
+                                             style="width: {{ stats.percentage }}%;" 
+                                             aria-valuenow="{{ stats.percentage }}" 
+                                             aria-valuemin="0" 
+                                             aria-valuemax="100">
+                                            {{ stats.translated }}/{{ stats.total }}
+                                        </div>
+                                    </div>
+                                {% endwith %}
+                            </td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <a href="{% url 'dictionary:category_translations_edit' category.id %}" 
+                                       class="btn btn-sm btn-primary">
+                                        <i class="fas fa-edit"></i> Редактировать
+                                    </a>
+                                    <button class="btn btn-sm btn-success add-missing-btn" 
+                                            data-type="category" 
+                                            data-id="{{ category.id }}">
+                                        <i class="fas fa-plus"></i> Добавить недостающие
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Теги -->
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5><i class="fas fa-tag"></i> Теги</h5>
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-outline-primary btn-sm" onclick="filterTagsByStatus('all')">Все</button>
+                <button type="button" class="btn btn-outline-success btn-sm" onclick="filterTagsByStatus('complete')">Полные</button>
+                <button type="button" class="btn btn-outline-warning btn-sm" onclick="filterTagsByStatus('partial')">Частичные</button>
+                <button type="button" class="btn btn-outline-danger btn-sm" onclick="filterTagsByStatus('empty')">Пустые</button>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped" id="tags-table">
+                    <thead>
+                        <tr>
+                            <th>Код</th>
+                            <th>Переводы</th>
+                            <th>Статус</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for tag in tags %}
+                        <tr data-status="{% if tag_stats|get_item:tag.id|get_item:'percentage' == 100 %}complete{% elif tag_stats|get_item:tag.id|get_item:'percentage' == 0 %}empty{% else %}partial{% endif %}">
+                            <td><strong>{{ tag.code }}</strong></td>
+                            <td>
+                                {% for translation in tag.translations.all %}
+                                    <span class="badge bg-info">{{ translation.language.code }}: {{ translation.name }}</span>
+                                {% empty %}
+                                    <span class="text-muted">Нет переводов</span>
+                                {% endfor %}
+                            </td>
+                            <td>
+                                {% with stats=tag_stats|get_item:tag.id %}
+                                    <div class="progress" style="height: 20px;">
+                                        <div class="progress-bar {% if stats.percentage == 100 %}bg-success{% elif stats.percentage == 0 %}bg-danger{% else %}bg-warning{% endif %}" 
+                                             role="progressbar" 
+                                             style="width: {{ stats.percentage }}%;" 
+                                             aria-valuenow="{{ stats.percentage }}" 
+                                             aria-valuemin="0" 
+                                             aria-valuemax="100">
+                                            {{ stats.translated }}/{{ stats.total }}
+                                        </div>
+                                    </div>
+                                {% endwith %}
+                            </td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <a href="{% url 'dictionary:tag_translations_edit' tag.id %}" 
+                                       class="btn btn-sm btn-primary">
+                                        <i class="fas fa-edit"></i> Редактировать
+                                    </a>
+                                    <button class="btn btn-sm btn-success add-missing-btn" 
+                                            data-type="tag" 
+                                            data-id="{{ tag.id }}">
+                                        <i class="fas fa-plus"></i> Добавить недостающие
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Переводы интерфейса -->
+    <div class="card">
+        <div class="card-header">
+            <h5><i class="fas fa-cog"></i> Переводы интерфейса</h5>
+        </div>
+        <div class="card-body">
+            <a href="{% url 'dictionary:interface_translations_edit' %}" 
+               class="btn btn-primary">
+                <i class="fas fa-edit"></i> Редактировать переводы интерфейса
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Обработка кнопок "Добавить недостающие"
+    document.querySelectorAll('.add-missing-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            const type = this.dataset.type;
+            const id = this.dataset.id;
+            
+            fetch('{% url "dictionary:add_missing_translations" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: `type=${type}&id=${id}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    location.reload();
+                } else {
+                    alert('Ошибка: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Произошла ошибка при добавлении переводов');
+            });
+        });
+    });
+});
+
+// Фильтрация категорий по статусу
+function filterByStatus(status) {
+    const rows = document.querySelectorAll('#categories-table tbody tr');
+    rows.forEach(row => {
+        const rowStatus = row.dataset.status;
+        if (status === 'all' || rowStatus === status) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+}
+
+// Фильтрация тегов по статусу
+function filterTagsByStatus(status) {
+    const rows = document.querySelectorAll('#tags-table tbody tr');
+    rows.forEach(row => {
+        const rowStatus = row.dataset.status;
+        if (status === 'all' || rowStatus === status) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+}
+</script>
+{% endblock %} 
+
+

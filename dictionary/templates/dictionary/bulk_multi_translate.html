@@ -1,0 +1,746 @@
+{% extends "dictionary/base.html" %}
+{% load dictionary_extras %}
+
+{% block title %}Массовый мультиперевод{% endblock %}
+
+{% block extra_css %}
+<style>
+.translation-card {
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    transition: all 0.3s ease;
+}
+
+.translation-card:hover {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    border-color: #007bff;
+}
+
+.translation-input {
+    border: 1px solid #ced4da;
+    transition: border-color 0.3s ease;
+}
+
+.translation-input:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.25);
+}
+
+.word-info {
+    background: #f8f9fa;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+}
+
+.progress-indicator {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+    display: none;
+}
+
+.batch-controls {
+    background: #e9ecef;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.auto-fill-btn {
+    font-size: 0.8rem;
+    padding: 2px 8px;
+}
+
+.preview-modal .modal-body {
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.translation-status {
+    font-size: 0.75rem;
+    padding: 2px 6px;
+    border-radius: 3px;
+}
+
+.status-existing {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status-new {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.status-missing {
+    background: #f8d7da;
+    color: #721c24;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <!-- Заголовок и навигация -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1><i class="fas fa-language"></i> Массовый мультиперевод</h1>
+            <p class="text-muted">Переводите множество слов на несколько языков одновременно</p>
+        </div>
+        <div class="btn-group">
+            <a href="{% url 'dictionary:word_translations_dashboard' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Назад
+            </a>
+            <button type="button" class="btn btn-info" onclick="showHelp()">
+                <i class="fas fa-question-circle"></i> Помощь
+            </button>
+        </div>
+    </div>
+
+    <!-- Прогресс-индикатор -->
+    <div class="progress-indicator alert alert-info" id="progress-indicator">
+        <i class="fas fa-spinner fa-spin"></i> Обработка...
+    </div>
+
+    <!-- Статистика -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body text-center">
+                    <h4>{{ total_words }}</h4>
+                    <small>Всего слов</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body text-center">
+                    <h4>{{ words_with_translations }}</h4>
+                    <small>С переводами</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body text-center">
+                    <h4>{{ translation_progress }}%</h4>
+                    <small>Прогресс</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body text-center">
+                    <h4>{{ words.count }}</h4>
+                    <small>Найдено слов</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Улучшенные фильтры -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5><i class="fas fa-filter"></i> Фильтры и поиск</h5>
+        </div>
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label for="source_lang" class="form-label">Исходный язык</label>
+                    <select class="form-select" id="source_lang" name="source_lang">
+                        <option value="">Все языки</option>
+                        {% for language in languages %}
+                        <option value="{{ language.code }}" 
+                                {% if source_language == language.code %}selected{% endif %}>
+                            {{ language.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="category" class="form-label">Категория</label>
+                    <select class="form-select" id="category" name="category">
+                        <option value="">Все категории</option>
+                        {% for category in categories %}
+                        <option value="{{ category.id }}" 
+                                {% if category_id == category.id|stringformat:"s" %}selected{% endif %}>
+                            {{ category.code }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="search" class="form-label">Поиск слов</label>
+                    <input type="text" class="form-control" id="search" name="search" 
+                           placeholder="Введите слово..." value="{{ search_query }}">
+                </div>
+                <div class="col-md-3">
+                    <label for="limit" class="form-label">Лимит слов</label>
+                    <select class="form-select" id="limit" name="limit">
+                        <option value="20" {% if limit == '20' %}selected{% endif %}>20</option>
+                        <option value="50" {% if limit == '50' %}selected{% endif %}>50</option>
+                        <option value="100" {% if limit == '100' %}selected{% endif %}>100</option>
+                    </select>
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search"></i> Найти слова
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary" onclick="resetFilters()">
+                        <i class="fas fa-undo"></i> Сбросить
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {% if words %}
+    <form method="post" id="bulk-multi-form">
+        {% csrf_token %}
+        
+        <!-- Управление пакетной обработкой -->
+        <div class="batch-controls">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h6><i class="fas fa-cogs"></i> Управление переводом</h6>
+                    <div class="btn-group btn-group-sm">
+                        <button type="button" class="btn btn-outline-primary" onclick="selectAllWords()">
+                            <i class="fas fa-check-square"></i> Выбрать все
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" onclick="deselectAllWords()">
+                            <i class="fas fa-square"></i> Снять выбор
+                        </button>
+                        <button type="button" class="btn btn-outline-info" onclick="autoFillTranslations()">
+                            <i class="fas fa-magic"></i> Автозаполнение
+                        </button>
+                    </div>
+                </div>
+                <div class="col-md-6 text-end">
+                    <span class="badge bg-info" id="selected-count">Выбрано: 0</span>
+                    <span class="badge bg-success" id="translation-count">Переводов: 0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Выбор целевых языков -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6><i class="fas fa-flag"></i> Языки для перевода</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% for language in languages %}
+                    <div class="col-md-3 mb-2">
+                        <div class="form-check">
+                            <input class="form-check-input target-lang-checkbox" type="checkbox" 
+                                   name="target_languages" 
+                                   value="{{ language.code }}"
+                                   id="target_lang_{{ language.code }}"
+                                   onchange="updateTranslationCount()">
+                            <label class="form-check-label" for="target_lang_{{ language.code }}">
+                                {{ language.name }} ({{ language.code }})
+                            </label>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Слова для перевода -->
+        <div class="row">
+            {% for word in words %}
+            <div class="col-md-6 mb-3">
+                <div class="translation-card">
+                    <div class="card-body">
+                        <!-- Информация о слове -->
+                        <div class="word-info">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="mb-1">{{ word.word }}</h6>
+                                    <small class="text-muted">{{ word.meaning|truncatechars:60 }}</small>
+                                </div>
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input word-checkbox" 
+                                           name="word_ids" value="{{ word.id }}"
+                                           onchange="updateSelectedCount()">
+                                </div>
+                            </div>
+                            <div class="mt-2">
+                                <span class="badge bg-info">{{ word.language.code }}</span>
+                                {% if word.category %}
+                                    <span class="badge bg-secondary">{{ word.category.code }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Поля переводов -->
+                        <div class="row">
+                            {% for language in languages %}
+                            {% if language.id != word.language.id %}
+                            <div class="col-12 mb-2">
+                                <div class="input-group">
+                                    <span class="input-group-text">{{ language.code }}</span>
+                                    <input type="text" 
+                                           class="form-control translation-input" 
+                                           name="translation_{{ word.id }}_{{ language.code }}"
+                                           placeholder="Введите перевод"
+                                           data-word-id="{{ word.id }}"
+                                           data-language="{{ language.code }}"
+                                           onchange="updateTranslationCount()">
+                                    <button type="button" class="btn btn-outline-secondary auto-fill-btn"
+                                            onclick="autoFillSingleTranslation('{{ word.id }}', '{{ language.code }}')"
+                                            title="Автозаполнение">
+                                        <i class="fas fa-magic"></i>
+                                    </button>
+                                </div>
+                                <small class="text-muted translation-status" id="status_{{ word.id }}_{{ language.code }}"></small>
+                            </div>
+                            {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <input type="hidden" name="translations_data" id="translations-data">
+        
+        <!-- Кнопки действий -->
+        <div class="card mt-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <button type="button" class="btn btn-info" onclick="previewTranslations()">
+                            <i class="fas fa-eye"></i> Предварительный просмотр
+                        </button>
+                        <button type="button" class="btn btn-warning" onclick="savePartial()">
+                            <i class="fas fa-save"></i> Сохранить выбранные
+                        </button>
+                    </div>
+                    <div>
+                        <button type="submit" class="btn btn-success btn-lg">
+                            <i class="fas fa-save"></i> Сохранить все переводы
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+    {% else %}
+    <div class="card">
+        <div class="card-body text-center py-5">
+            <i class="fas fa-search fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted">Слова не найдены</h5>
+            <p class="text-muted">Попробуйте изменить параметры фильтрации</p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Модальное окно предварительного просмотра -->
+<div class="modal fade" id="previewModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Предварительный просмотр переводов</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="preview-content">
+                <!-- Содержимое будет загружено динамически -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                <button type="button" class="btn btn-success" onclick="submitForm()">Сохранить</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно помощи -->
+<div class="modal fade" id="helpModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Помощь по массовому переводу</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <h6>Как использовать:</h6>
+                <ol>
+                    <li>Выберите исходный язык и категорию для фильтрации слов</li>
+                    <li>Отметьте языки, на которые нужно перевести</li>
+                    <li>Выберите слова для перевода (или используйте "Выбрать все")</li>
+                    <li>Введите переводы в соответствующие поля</li>
+                    <li>Используйте "Автозаполнение" для автоматического заполнения</li>
+                    <li>Просмотрите результат перед сохранением</li>
+                </ol>
+                <h6>Советы:</h6>
+                <ul>
+                    <li>Можно сохранить только выбранные переводы</li>
+                    <li>Используйте предварительный просмотр для проверки</li>
+                    <li>Автозаполнение использует существующие переводы</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let translationData = {};
+
+// Обновление счетчиков
+function updateSelectedCount() {
+    const selected = document.querySelectorAll('.word-checkbox:checked').length;
+    document.getElementById('selected-count').textContent = `Выбрано: ${selected}`;
+}
+
+function updateTranslationCount() {
+    const selectedWords = document.querySelectorAll('.word-checkbox:checked');
+    const selectedLanguages = document.querySelectorAll('.target-lang-checkbox:checked');
+    let count = 0;
+    
+    selectedWords.forEach(wordCheckbox => {
+        const wordId = wordCheckbox.value;
+        selectedLanguages.forEach(langCheckbox => {
+            const langCode = langCheckbox.value;
+            const input = document.querySelector(`input[name="translation_${wordId}_${langCode}"]`);
+            if (input && input.value.trim()) {
+                count++;
+            }
+        });
+    });
+    
+    document.getElementById('translation-count').textContent = `Переводов: ${count}`;
+}
+
+// Выбор всех слов
+function selectAllWords() {
+    document.querySelectorAll('.word-checkbox').forEach(checkbox => {
+        checkbox.checked = true;
+    });
+    updateSelectedCount();
+    updateTranslationCount();
+}
+
+// Снятие выбора со всех слов
+function deselectAllWords() {
+    document.querySelectorAll('.word-checkbox').forEach(checkbox => {
+        checkbox.checked = false;
+    });
+    updateSelectedCount();
+    updateTranslationCount();
+}
+
+// Автозаполнение переводов
+function autoFillTranslations() {
+    showProgress();
+    
+    const selectedWords = document.querySelectorAll('.word-checkbox:checked');
+    const selectedLanguages = document.querySelectorAll('.target-lang-checkbox:checked');
+    
+    if (selectedWords.length === 0) {
+        alert('Пожалуйста, выберите слова для автозаполнения');
+        hideProgress();
+        return;
+    }
+    
+    if (selectedLanguages.length === 0) {
+        alert('Пожалуйста, выберите языки для перевода');
+        hideProgress();
+        return;
+    }
+    
+    // Собираем данные для API
+    const wordIds = Array.from(selectedWords).map(checkbox => checkbox.value);
+    const targetLanguages = Array.from(selectedLanguages).map(checkbox => checkbox.value);
+    
+    // Отправляем запрос к API
+    fetch('{% url "dictionary:auto_fill_translations" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify({
+            word_ids: wordIds,
+            target_languages: targetLanguages
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Заполняем поля переводами
+            Object.keys(data.translations).forEach(key => {
+                const [wordId, langCode] = key.split('_');
+                const input = document.querySelector(`input[name="translation_${wordId}_${langCode}"]`);
+                if (input) {
+                    input.value = data.translations[key];
+                    input.classList.add('table-warning');
+                    
+                    // Обновляем статус
+                    const statusElement = document.getElementById(`status_${wordId}_${langCode}`);
+                    if (statusElement) {
+                        if (data.translations[key].startsWith('[AUTO]')) {
+                            statusElement.textContent = 'Автозаполнено';
+                            statusElement.className = 'translation-status status-new';
+                        } else if (data.translations[key].startsWith('[SIMILAR]')) {
+                            statusElement.textContent = 'Похожее слово';
+                            statusElement.className = 'translation-status status-existing';
+                        } else {
+                            statusElement.textContent = 'Существующий перевод';
+                            statusElement.className = 'translation-status status-existing';
+                        }
+                    }
+                }
+            });
+            
+            updateTranslationCount();
+            alert(`Автозаполнено ${Object.keys(data.translations).length} переводов`);
+        } else {
+            alert('Ошибка при автозаполнении: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Ошибка при автозаполнении переводов');
+    })
+    .finally(() => {
+        hideProgress();
+    });
+}
+
+// Автозаполнение одного перевода
+function autoFillSingleTranslation(wordId, langCode) {
+    const input = document.querySelector(`input[name="translation_${wordId}_${langCode}"]`);
+    
+    if (input.value.trim()) {
+        return; // Поле уже заполнено
+    }
+    
+    // Отправляем запрос к API для одного слова
+    fetch('{% url "dictionary:auto_fill_translations" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify({
+            word_ids: [wordId],
+            target_languages: [langCode]
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const key = `${wordId}_${langCode}`;
+            if (data.translations[key]) {
+                input.value = data.translations[key];
+                input.classList.add('table-warning');
+                
+                // Обновляем статус
+                const statusElement = document.getElementById(`status_${wordId}_${langCode}`);
+                if (statusElement) {
+                    if (data.translations[key].startsWith('[AUTO]')) {
+                        statusElement.textContent = 'Автозаполнено';
+                        statusElement.className = 'translation-status status-new';
+                    } else if (data.translations[key].startsWith('[SIMILAR]')) {
+                        statusElement.textContent = 'Похожее слово';
+                        statusElement.className = 'translation-status status-existing';
+                    } else {
+                        statusElement.textContent = 'Существующий перевод';
+                        statusElement.className = 'translation-status status-existing';
+                    }
+                }
+                
+                updateTranslationCount();
+            }
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        // Fallback к простому автозаполнению
+        const wordText = input.closest('.translation-card').querySelector('h6').textContent;
+        input.value = `[AUTO] ${wordText} (${langCode})`;
+        input.classList.add('table-warning');
+        updateTranslationCount();
+    });
+}
+
+// Предварительный просмотр
+function previewTranslations() {
+    const translations = collectTranslations();
+    
+    if (Object.keys(translations).length === 0) {
+        alert('Нет переводов для предварительного просмотра');
+        return;
+    }
+    
+    let previewHtml = '<div class="table-responsive"><table class="table table-sm">';
+    previewHtml += '<thead><tr><th>Слово</th><th>Язык</th><th>Перевод</th></tr></thead><tbody>';
+    
+    Object.keys(translations).forEach(key => {
+        const [wordId, langCode] = key.split('_');
+        const wordElement = document.querySelector(`input[value="${wordId}"]`).closest('.translation-card');
+        const wordText = wordElement.querySelector('h6').textContent;
+        
+        previewHtml += `<tr>
+            <td>${wordText}</td>
+            <td><span class="badge bg-info">${langCode}</span></td>
+            <td>${translations[key]}</td>
+        </tr>`;
+    });
+    
+    previewHtml += '</tbody></table></div>';
+    
+    document.getElementById('preview-content').innerHTML = previewHtml;
+    new bootstrap.Modal(document.getElementById('previewModal')).show();
+}
+
+// Сбор данных переводов
+function collectTranslations() {
+    const translations = {};
+    const selectedWords = document.querySelectorAll('.word-checkbox:checked');
+    const selectedLanguages = document.querySelectorAll('.target-lang-checkbox:checked');
+    
+    selectedWords.forEach(wordCheckbox => {
+        const wordId = wordCheckbox.value;
+        
+        selectedLanguages.forEach(langCheckbox => {
+            const langCode = langCheckbox.value;
+            const translationInput = document.querySelector(`input[name="translation_${wordId}_${langCode}"]`);
+            
+            if (translationInput && translationInput.value.trim()) {
+                const key = `${wordId}_${langCode}`;
+                translations[key] = translationInput.value.trim();
+            }
+        });
+    });
+    
+    return translations;
+}
+
+// Сохранение части переводов
+function savePartial() {
+    const translations = collectTranslations();
+    
+    if (Object.keys(translations).length === 0) {
+        alert('Нет переводов для сохранения');
+        return;
+    }
+    
+    if (confirm(`Сохранить ${Object.keys(translations).length} переводов?`)) {
+        document.getElementById('translations-data').value = JSON.stringify(translations);
+        document.getElementById('bulk-multi-form').submit();
+    }
+}
+
+// Отправка формы
+function submitForm() {
+    document.getElementById('bulk-multi-form').submit();
+}
+
+// Показать/скрыть прогресс
+function showProgress() {
+    document.getElementById('progress-indicator').style.display = 'block';
+}
+
+function hideProgress() {
+    document.getElementById('progress-indicator').style.display = 'none';
+}
+
+// Сброс фильтров
+function resetFilters() {
+    window.location.href = window.location.pathname;
+}
+
+// Показать помощь
+function showHelp() {
+    new bootstrap.Modal(document.getElementById('helpModal')).show();
+}
+
+// Автоматический выбор слова при вводе перевода
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.translation-input').forEach(input => {
+        input.addEventListener('input', function() {
+            const wordId = this.dataset.wordId;
+            const checkbox = document.querySelector(`input[value="${wordId}"]`);
+            
+            if (this.value.trim()) {
+                checkbox.checked = true;
+                updateSelectedCount();
+            }
+            
+            updateTranslationCount();
+        });
+    });
+    
+    // Проверяем существующие переводы при загрузке
+    checkExistingTranslations();
+    
+    updateSelectedCount();
+    updateTranslationCount();
+});
+
+// Проверка существующих переводов
+function checkExistingTranslations() {
+    const wordIds = Array.from(document.querySelectorAll('.word-checkbox')).map(cb => cb.value);
+    const languages = Array.from(document.querySelectorAll('.target-lang-checkbox')).map(cb => cb.value);
+    
+    if (wordIds.length === 0 || languages.length === 0) return;
+    
+    fetch('{% url "dictionary:auto_fill_translations" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify({
+            word_ids: wordIds,
+            target_languages: languages
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            Object.keys(data.translations).forEach(key => {
+                const [wordId, langCode] = key.split('_');
+                const statusElement = document.getElementById(`status_${wordId}_${langCode}`);
+                if (statusElement) {
+                    if (data.translations[key].startsWith('[AUTO]')) {
+                        statusElement.textContent = 'Нет перевода';
+                        statusElement.className = 'translation-status status-missing';
+                    } else if (data.translations[key].startsWith('[SIMILAR]')) {
+                        statusElement.textContent = 'Есть похожее';
+                        statusElement.className = 'translation-status status-existing';
+                    } else {
+                        statusElement.textContent = 'Есть перевод';
+                        statusElement.className = 'translation-status status-existing';
+                    }
+                }
+            });
+        }
+    })
+    .catch(error => {
+        console.error('Error checking existing translations:', error);
+    });
+}
+
+// Подготовка данных для отправки
+document.getElementById('bulk-multi-form').addEventListener('submit', function(e) {
+    const translations = collectTranslations();
+    
+    if (Object.keys(translations).length === 0) {
+        e.preventDefault();
+        alert('Пожалуйста, введите хотя бы один перевод');
+        return;
+    }
+    
+    document.getElementById('translations-data').value = JSON.stringify(translations);
+});
+</script>
+{% endblock %} 

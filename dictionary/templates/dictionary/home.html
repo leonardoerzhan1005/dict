@@ -1,0 +1,200 @@
+{% extends 'dictionary/base.html' %}
+
+{% block title %}Поиск слов - Многоязычный словарь{% endblock %}
+
+{% block content %}
+<!-- Поисковая форма -->
+<div class="search-box">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <h1 class="text-center text-white mb-4">
+                    <i class="fas fa-search"></i> Поиск слов
+                    {% if user.is_staff %}
+                        <div class="mt-2">
+                            <a href="{% url 'dictionary:word_create' %}" class="btn btn-success btn-sm">
+                                <i class="fas fa-plus"></i> Добавить слово
+                            </a>
+                        </div>
+                    {% endif %}
+                </h1>
+                
+                <form method="GET" action="{% url 'dictionary:home' %}">
+                    <div class="input-group input-group-lg" id="search-container">
+                        <input type="text" 
+                               class="form-control" 
+                               id="search-input"
+                               name="q" 
+                               value="{{ current_query }}"
+                               placeholder="Введите слово для поиска..."
+                               autocomplete="off">
+                        <button class="btn btn-primary" type="submit">
+                            <i class="fas fa-search"></i> Найти
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <!-- Фильтры -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <!-- Фильтр по языку -->
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fas fa-globe"></i> Язык</h6>
+                </div>
+                <div class="card-body">
+                    <form method="GET" action="{% url 'dictionary:home' %}">
+                        {% if current_query %}<input type="hidden" name="q" value="{{ current_query }}">{% endif %}
+                        {% if current_category %}<input type="hidden" name="category" value="{{ current_category }}">{% endif %}
+                        <select class="form-select" id="language-filter" name="lang" onchange="this.form.submit()">
+                        <option value="">Все языки</option>
+                        {% for language in languages %}
+                            <option value="{{ language.code }}" 
+                                    {% if current_language == language.code %}selected{% endif %}>
+                                {{ language.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <!-- Фильтр по категории -->
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fas fa-tags"></i> Категория</h6>
+                </div>
+                <div class="card-body">
+                    <form method="GET" action="{% url 'dictionary:home' %}">
+                        {% if current_query %}<input type="hidden" name="q" value="{{ current_query }}">{% endif %}
+                        {% if current_language %}<input type="hidden" name="lang" value="{{ current_language }}">{% endif %}
+                        <select class="form-select" name="category" onchange="this.form.submit()">
+                            <option value="">Все категории</option>
+                            {% for cat_data in categories %}
+                                <option value="{{ cat_data.category.id }}" 
+                                        {% if current_category == cat_data.category.id|stringformat:"s" %}selected{% endif %}>
+                                    {{ cat_data.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Результаты поиска -->
+    <div class="row">
+        <div class="col-12">
+            {% if current_query %}
+                <h4>Результаты поиска для "{{ current_query }}"</h4>
+                <p class="text-muted">Найдено {{ words.paginator.count }} слов</p>
+            {% endif %}
+            
+            {% if words %}
+                <div class="row">
+                    {% for word in words %}
+                        <div class="col-md-6 col-lg-4 mb-3">
+                            <div class="card word-card h-100">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <h5 class="card-title mb-0">
+                                            <a href="{% url 'dictionary:word_detail' word.id %}" class="text-decoration-none">
+                                                {{ word.word }}
+                                            </a>
+                                        </h5>
+                                        <span class="badge bg-primary language-badge">
+                                            {{ word.language.code|upper }}
+                                        </span>
+                                    </div>
+                                    
+                                    <p class="card-text text-muted">
+                                        {{ word.meaning|truncatewords:10 }}
+                                    </p>
+                                    
+                                    {% if word.category %}
+                                        <span class="badge bg-secondary">{{ word.category.code }}</span>
+                                    {% endif %}
+                                    
+                                    {% if word.difficulty %}
+                                        <span class="badge bg-info">{{ word.get_difficulty_display }}</span>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="card-footer bg-transparent">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <small class="text-muted">
+                                            <i class="fas fa-calendar"></i> {{ word.created_at|date:"d.m.Y" }}
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+                
+                <!-- Пагинация -->
+                {% if words.has_other_pages %}
+                    <nav aria-label="Навигация по страницам">
+                        <ul class="pagination justify-content-center">
+                            {% if words.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ words.previous_page_number }}{% if current_query %}&q={{ current_query }}{% endif %}{% if current_language %}&lang={{ current_language }}{% endif %}{% if current_category %}&category={{ current_category }}{% endif %}">
+                                        <i class="fas fa-chevron-left"></i>
+                                    </a>
+                                </li>
+                            {% endif %}
+                            
+                            {% for num in words.paginator.page_range %}
+                                {% if words.number == num %}
+                                    <li class="page-item active">
+                                        <span class="page-link">{{ num }}</span>
+                                    </li>
+                                {% elif num > words.number|add:'-3' and num < words.number|add:'3' %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ num }}{% if current_query %}&q={{ current_query }}{% endif %}{% if current_language %}&lang={{ current_language }}{% endif %}{% if current_category %}&category={{ current_category }}{% endif %}">
+                                            {{ num }}
+                                        </a>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+                            
+                            {% if words.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ words.next_page_number }}{% if current_query %}&q={{ current_query }}{% endif %}{% if current_language %}&lang={{ current_language }}{% endif %}{% if current_category %}&category={{ current_category }}{% endif %}">
+                                        <i class="fas fa-chevron-right"></i>
+                                    </a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                {% endif %}
+                
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                    <h4>Слова не найдены</h4>
+                    <p class="text-muted">
+                        {% if current_query %}
+                            По запросу "{{ current_query }}" ничего не найдено.
+                        {% else %}
+                            Попробуйте изменить параметры поиска или добавьте слова через админку.
+                        {% endif %}
+                    </p>
+                    {% if user.is_staff %}
+                        <a href="{% url 'admin:dictionary_word_add' %}" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Добавить слово
+                        </a>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %} 

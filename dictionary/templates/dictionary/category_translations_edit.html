@@ -1,0 +1,224 @@
+{% extends "dictionary/base.html" %}
+{% load dictionary_extras %}
+
+{% block title %}Редактирование переводов - {{ category.code }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Редактирование переводов категории: <strong>{{ category.code }}</strong></h1>
+        <div>
+            <a href="{% url 'dictionary:translation_dashboard' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Назад к дашборду
+            </a>
+        </div>
+    </div>
+
+    <!-- Статистика переводов -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h6><i class="fas fa-info-circle"></i> Информация о категории</h6>
+                </div>
+                <div class="card-body">
+                    <p><strong>Код:</strong> {{ category.code }}</p>
+                    <p><strong>Всего языков:</strong> {{ languages.count }}</p>
+                    <p><strong>Переведено:</strong> 
+                        {% with translations=category.translations.all %}
+                            {{ translations.count }}/{{ languages.count }}
+                        {% endwith %}
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h6><i class="fas fa-tools"></i> Быстрые действия</h6>
+                </div>
+                <div class="card-body">
+                    <button class="btn btn-sm btn-outline-primary" onclick="copyFromFirstLanguage()">
+                        <i class="fas fa-copy"></i> Копировать с первого языка
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="clearAllFields()">
+                        <i class="fas fa-eraser"></i> Очистить все
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <form method="post" id="translation-form">
+        {% csrf_token %}
+        
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-language"></i> Переводы для всех языков</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% for language in languages %}
+                    <div class="col-md-6 mb-3">
+                        <div class="card {% if translations|get_item:language.code|get_item:'name' %}border-success{% else %}border-warning{% endif %}">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0">
+                                    <i class="fas fa-flag"></i> {{ language.name }} ({{ language.code }})
+                                </h6>
+                                <span class="badge {% if translations|get_item:language.code|get_item:'name' %}bg-success{% else %}bg-warning{% endif %}">
+                                    {% if translations|get_item:language.code|get_item:'name' %}Переведено{% else %}Не переведено{% endif %}
+                                </span>
+                            </div>
+                            <div class="card-body">
+                                <div class="form-group mb-3">
+                                    <label for="name_{{ language.code }}" class="form-label">
+                                        Название <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="text" 
+                                           class="form-control translation-field" 
+                                           id="name_{{ language.code }}" 
+                                           name="name_{{ language.code }}"
+                                           value="{{ translations|get_item:language.code|get_item:'name'|default:'' }}"
+                                           placeholder="Введите название на {{ language.name }}"
+                                           data-language="{{ language.code }}">
+                                    <div class="form-text">Обязательное поле</div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="description_{{ language.code }}" class="form-label">Описание</label>
+                                    <textarea class="form-control translation-field" 
+                                              id="description_{{ language.code }}" 
+                                              name="description_{{ language.code }}"
+                                              rows="3"
+                                              placeholder="Введите описание на {{ language.name }}"
+                                              data-language="{{ language.code }}">{{ translations|get_item:language.code|get_item:'description'|default:'' }}</textarea>
+                                    <div class="form-text">Необязательное поле</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> Сохранить все переводы
+            </button>
+            <a href="{% url 'dictionary:translation_dashboard' %}" class="btn btn-secondary">
+                <i class="fas fa-times"></i> Отмена
+            </a>
+        </div>
+    </form>
+</div>
+
+<script>
+// Копирование с первого языка
+function copyFromFirstLanguage() {
+    const firstLanguageField = document.querySelector('.translation-field');
+    if (firstLanguageField) {
+        const value = firstLanguageField.value;
+        if (value) {
+            const allFields = document.querySelectorAll('.translation-field');
+            allFields.forEach(field => {
+                if (field.value === '') {
+                    field.value = value;
+                    field.closest('.card').classList.remove('border-warning');
+                    field.closest('.card').classList.add('border-success');
+                    const badge = field.closest('.card').querySelector('.badge');
+                    if (badge) {
+                        badge.textContent = 'Переведено';
+                        badge.classList.remove('bg-warning');
+                        badge.classList.add('bg-success');
+                    }
+                }
+            });
+        }
+    }
+}
+
+// Очистка всех полей
+function clearAllFields() {
+    if (confirm('Вы уверены, что хотите очистить все поля?')) {
+        const allFields = document.querySelectorAll('.translation-field');
+        allFields.forEach(field => {
+            field.value = '';
+            field.closest('.card').classList.remove('border-success');
+            field.closest('.card').classList.add('border-warning');
+            const badge = field.closest('.card').querySelector('.badge');
+            if (badge) {
+                badge.textContent = 'Не переведено';
+                badge.classList.remove('bg-success');
+                badge.classList.add('bg-warning');
+            }
+        });
+    }
+}
+
+// Валидация формы
+document.getElementById('translation-form').addEventListener('submit', function(e) {
+    const requiredFields = document.querySelectorAll('input[type="text"]');
+    let hasErrors = false;
+    
+    requiredFields.forEach(field => {
+        if (!field.value.trim()) {
+            field.classList.add('is-invalid');
+            hasErrors = true;
+        } else {
+            field.classList.remove('is-invalid');
+        }
+    });
+    
+    if (hasErrors) {
+        e.preventDefault();
+        alert('Пожалуйста, заполните все обязательные поля (отмечены звездочкой)');
+    }
+});
+
+// Обновление статуса при вводе
+document.querySelectorAll('.translation-field').forEach(field => {
+    field.addEventListener('input', function() {
+        const card = this.closest('.card');
+        const badge = card.querySelector('.badge');
+        
+        if (this.value.trim()) {
+            card.classList.remove('border-warning');
+            card.classList.add('border-success');
+            if (badge) {
+                badge.textContent = 'Переведено';
+                badge.classList.remove('bg-warning');
+                badge.classList.add('bg-success');
+            }
+        } else {
+            card.classList.remove('border-success');
+            card.classList.add('border-warning');
+            if (badge) {
+                badge.textContent = 'Не переведено';
+                badge.classList.remove('bg-success');
+                badge.classList.add('bg-warning');
+            }
+        }
+    });
+});
+</script>
+
+<style>
+.card-header h6 {
+    margin: 0;
+    color: #495057;
+}
+.form-group label {
+    font-weight: 500;
+    color: #495057;
+}
+.border-success {
+    border-color: #28a745 !important;
+}
+.border-warning {
+    border-color: #ffc107 !important;
+}
+.is-invalid {
+    border-color: #dc3545 !important;
+}
+</style>
+{% endblock %} 

@@ -1,0 +1,54 @@
+# Python
+*.pyc
+__pycache__/
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+*.egg
+dist/
+build/
+
+# Django
+*.log
+*.pot
+*.pyc
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+media/
+staticfiles/
+
+# Virtual Environment
+venv/
+.venv/
+env/
+*.venv/
+
+# IDEs and Editors
+.idea/
+*.sublime-project
+*.sublime-workspace
+.vscode/
+*.swp
+
+# macOS
+.DS_Store
+
+# Docker
+*.dockerignore
+docker-compose.override.yml
+
+# Environment Variables
+.env
+*.env
+
+# Cache and Temporary Files
+*.cache
+*.bak
+*.swp
+*.swo
+
+# Static and Collected Files
+static/
+media/
