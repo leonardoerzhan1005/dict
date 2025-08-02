@@ -10,7 +10,18 @@ services:
     volumes:
       - .:/app
       - ./db.sqlite3:/app/db.sqlite3
-    ports:
-      - "8000:8000"
+    expose:
+      - "8000"
     env_file:
       - .env
+
+  nginx:
+    image: nginx:stable
+    ports:
+      - "80:80"
+    depends_on:
+      - web
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./staticfiles:/app/staticfiles
+      - ./media:/app/media
