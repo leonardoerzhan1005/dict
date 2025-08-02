@@ -36,7 +36,8 @@ CSRF_TRUSTED_ORIGINS = [
     'http://localhost:8000',
     'http://127.0.0.1:8000',
 ]
-    
+CSRF_COOKIE_SECURE = False
+SESSION_COOKIE_SECURE = False  
  
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_BROWSER_XSS_FILTER = True
