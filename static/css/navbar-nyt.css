@@ -1,13 +1,20 @@
 /* Стили для навигации в стиле New York Times */
 
 .navbar-nyt {
-    background-color: #1a1a1a;
-    border-bottom: 3px solid #1a1a1a;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    background-color: #000000;
+    border-bottom: 3px solid #333;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
     font-family: "Cheltenham", "Georgia", serif;
     position: sticky;
     top: 0;
     z-index: 1000;
+}
+
+.navbar-nyt .container {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    width: 100% !important;
 }
 
 .navbar-nyt .navbar-brand {
@@ -25,6 +32,7 @@
     color: #fff !important;
     text-decoration: none !important;
     transform: translateY(-1px) !important;
+    text-shadow: 0 0 10px rgba(255,255,255,0.5) !important;
 }
 
 .navbar-nyt .navbar-brand i {
@@ -36,8 +44,16 @@
 /* Основное меню */
 .navbar-nyt .navbar-nav {
     margin-left: 2rem;
+    align-items: center;
+    display: flex !important;
+    flex-direction: row !important;
 }
 
+.navbar-nyt .navbar-nav .nav-item {
+    display: flex !important;
+    align-items: center !important;
+    margin: 0 0.2rem !important;
+}
 .navbar-nyt .nav-link {
     font-family: "Charter", "Georgia", serif !important;
     font-size: 0.9rem !important;
@@ -51,18 +67,26 @@
     transition: all 0.3s ease !important;
     position: relative !important;
     text-decoration: none !important;
+    display: inline-block !important;
 }
 
 .navbar-nyt .nav-link:hover {
     color: #fff !important;
-    background-color: rgba(255,255,255,0.1) !important;
+    background-color: rgba(255,255,255,0.15) !important;
     text-decoration: none !important;
     transform: translateY(-1px) !important;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3) !important;
+    text-shadow: 0 0 8px rgba(255,255,255,0.3) !important;
 }
 
 .navbar-nyt .nav-link.active {
     background-color: rgba(255,255,255,0.15) !important;
     border-bottom: 2px solid #fff !important;
+    font-weight: 700 !important;
+}
+
+.navbar-nyt .nav-link.active:hover {
+    background-color: rgba(255,255,255,0.2) !important;
 }
 
 .navbar-nyt .nav-link i {
@@ -72,15 +96,20 @@
 
 /* Dropdown меню */
 .navbar-nyt .dropdown-menu {
-    background-color: #fff !important;
-    border: 1px solid #e0e0e0 !important;
+    background-color: #1a1a1a !important;
+    border: 1px solid #333 !important;
     border-radius: 0 !important;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4) !important;
     margin-top: 0.5rem !important;
     padding: 0.5rem 0 !important;
     min-width: 200px !important;
     position: absolute !important;
     z-index: 1001 !important;
+    display: none !important;
+}
+
+.navbar-nyt .dropdown-menu.show {
+    display: block !important;
 }
 
 @media (min-width: 992px) {
@@ -89,13 +118,18 @@
         top: 100% !important;
         left: 0 !important;
         right: auto !important;
+        display: none !important;
+    }
+    
+    .navbar-nyt .dropdown-menu.show {
+        display: block !important;
     }
 }
 
 .navbar-nyt .dropdown-item {
     font-family: "Charter", "Georgia", serif;
     font-size: 0.9rem;
-    color: #1a1a1a;
+    color: #fff;
     padding: 0.8rem 1.5rem;
     border-radius: 0;
     transition: all 0.3s ease;
@@ -103,10 +137,11 @@
 }
 
 .navbar-nyt .dropdown-item:hover {
-    background-color: #f8f8f8;
-    color: #1a1a1a;
+    background-color: rgba(255,255,255,0.1);
+    color: #000000;
     text-decoration: none;
     transform: translateX(5px);
+    text-shadow: 0 0 8px rgba(255,255,255,0.3);
 }
 
 .navbar-nyt .dropdown-item i {
@@ -120,11 +155,51 @@
 .navbar-nyt .dropdown-toggle {
     color: #fff !important;
     text-decoration: none !important;
+    position: relative !important;
+    cursor: pointer !important;
 }
 
 .navbar-nyt .dropdown-toggle::after {
     color: #fff !important;
     border-top-color: #fff !important;
+    transition: all 0.3s ease !important;
+    margin-left: 0.5rem !important;
+}
+
+.navbar-nyt .dropdown-toggle:hover::after {
+    transform: rotate(180deg) !important;
+}
+
+.navbar-nyt .dropdown.show .dropdown-toggle::after {
+    transform: rotate(180deg) !important;
+}
+
+/* Исправление для language-dropdown */
+.navbar-nyt .language-dropdown {
+    background-color: transparent !important;
+    color: #fff !important;
+    border: 1px solid rgba(255,255,255,0.3) !important;
+    font-family: "Charter", "Georgia", serif !important;
+    font-size: 0.8rem !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+    padding: 0.5rem 1rem !important;
+    border-radius: 0 !important;
+    transition: all 0.3s ease !important;
+    text-decoration: none !important;
+    cursor: pointer !important;
+}
+
+.navbar-nyt .language-dropdown:hover {
+    background-color: rgba(255,255,255,0.1) !important;
+    color: #fff !important;
+    border-color: rgba(255,255,255,0.5) !important;
+    text-decoration: none !important;
+}
+
+.navbar-nyt .language-dropdown i {
+    margin-right: 0.5rem !important;
 }
 
 /* Кнопки в меню */
@@ -149,14 +224,15 @@
 
 .navbar-nyt .btn-login:hover {
     background-color: #fff !important;
-    color: #1a1a1a !important;
+    color: #000 !important;
     text-decoration: none !important;
     transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(255,255,255,0.3) !important;
 }
 
 .navbar-nyt .btn-register {
     background-color: #fff !important;
-    color: #1a1a1a !important;
+    color: #000 !important;
     border: 1px solid #fff !important;
     font-family: "Charter", "Georgia", serif !important;
     font-size: 0.9rem !important;
@@ -175,9 +251,10 @@
 
 .navbar-nyt .btn-register:hover {
     background-color: #f8f8f8 !important;
-    color: #1a1a1a !important;
+    color: #000 !important;
     text-decoration: none !important;
     transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(255,255,255,0.4) !important;
 }
 
 /* Принудительное отображение кнопок на desktop */
@@ -193,40 +270,79 @@
     
     .navbar-nyt .navbar-nav {
         align-items: center !important;
+        display: flex !important;
+        flex-direction: row !important;
+        visibility: visible !important;
+        opacity: 1 !important;
     }
     
     .navbar-nyt .nav-item {
         display: flex !important;
         align-items: center !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+    
+    .navbar-nyt .nav-link {
+        display: inline-block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+    
+    .navbar-nyt .dropdown {
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+    
+    .navbar-nyt .dropdown-toggle {
+        display: inline-block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+    
+    .navbar-nyt .navbar-collapse {
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        transform: none !important;
+    }
+    
+    /* Принудительное отображение всех элементов навигации */
+    .navbar-nyt .navbar-nav:first-child,
+    .navbar-nyt .navbar-nav:last-child {
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        align-items: center !important;
+    }
+    
+    .navbar-nyt .navbar-nav:last-child {
+        margin-left: auto !important;
+    }
+    
+    .navbar-nyt .navbar-nav .nav-item {
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+    
+    .navbar-nyt .navbar-nav .nav-link {
+        display: inline-block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+    
+    .navbar-nyt .dropdown-menu {
+        display: none !important;
+    }
+    
+    .navbar-nyt .dropdown.show .dropdown-menu {
+        display: block !important;
     }
 }
 
-/* Переключатель языка */
-.navbar-nyt .language-dropdown {
-    background-color: transparent !important;
-    color: #fff !important;
-    border: 1px solid rgba(255,255,255,0.3) !important;
-    font-family: "Charter", "Georgia", serif !important;
-    font-size: 0.8rem !important;
-    font-weight: 600 !important;
-    text-transform: uppercase !important;
-    letter-spacing: 0.05em !important;
-    padding: 0.5rem 1rem !important;
-    border-radius: 0 !important;
-    transition: all 0.3s ease !important;
-    text-decoration: none !important;
-}
 
-.navbar-nyt .language-dropdown:hover {
-    background-color: rgba(255,255,255,0.1) !important;
-    color: #fff !important;
-    border-color: rgba(255,255,255,0.5) !important;
-    text-decoration: none !important;
-}
-
-.navbar-nyt .language-dropdown i {
-    margin-right: 0.5rem !important;
-}
 
 /* Мобильное меню */
 .navbar-nyt .navbar-toggler {
@@ -250,11 +366,28 @@
     font-size: 1.2rem !important;
 }
 
-.navbar-nyt .navbar-collapse {
-    background-color: #1a1a1a;
-    border-top: 1px solid rgba(255,255,255,0.1);
-    margin-top: 1rem;
-    padding: 1rem 0;
+/* Desktop navbar-collapse */
+@media (min-width: 992px) {
+    .navbar-nyt .navbar-collapse {
+        background-color: transparent !important;
+        border-top: none !important;
+        margin-top: 0 !important;
+        padding: 0 !important;
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        transform: none !important;
+    }
+}
+
+/* Mobile navbar-collapse */
+@media (max-width: 991.98px) {
+    .navbar-nyt .navbar-collapse {
+        background-color: #000;
+        border-top: 1px solid rgba(255,255,255,0.2);
+        margin-top: 1rem;
+        padding: 1rem 0;
+    }
 }
 
 /* Анимации */
@@ -268,10 +401,17 @@
     background-color: #fff;
     transition: all 0.3s ease;
     transform: translateX(-50%);
+    opacity: 0;
 }
 
 .navbar-nyt .nav-link:hover::after {
     width: 80%;
+    opacity: 1;
+}
+
+.navbar-nyt .nav-link.active::after {
+    width: 80%;
+    opacity: 1;
 }
 
 .navbar-nyt .dropdown-menu {
@@ -298,10 +438,22 @@
         margin-top: 1rem;
     }
     
+    /* Правая часть меню на мобильных */
+    .navbar-nyt .navbar-nav:last-child {
+        margin-top: 0.5rem;
+        border-top: 1px solid rgba(255,255,255,0.1);
+        padding-top: 1rem;
+    }
+    
     .navbar-nyt .nav-link {
         padding: 1rem 0;
         margin: 0;
         border-bottom: 1px solid rgba(255,255,255,0.1);
+        text-align: left;
+    }
+    
+    .navbar-nyt .nav-link::after {
+        display: none;
     }
     
     .navbar-nyt .nav-link:last-child {
@@ -322,12 +474,13 @@
     .navbar-nyt .dropdown-item {
         color: #fff !important;
         padding: 0.5rem 0 !important;
-        border-bottom: 1px solid rgba(255,255,255,0.1) !important;
+        border-bottom: 1px solid rgba(255,255,255,0.15) !important;
     }
     
     .navbar-nyt .dropdown-item:hover {
-        background-color: rgba(255,255,255,0.1) !important;
+        background-color: rgba(255,255,255,0.15) !important;
         color: #fff !important;
+        text-shadow: 0 0 8px rgba(255,255,255,0.3) !important;
     }
     
     .navbar-nyt .dropdown-item:last-child {
@@ -340,6 +493,41 @@
         width: 100% !important;
         margin: 0.5rem 0 !important;
         text-align: center !important;
+        padding: 1rem !important;
+        border-radius: 0 !important;
+        font-size: 0.9rem !important;
+    }
+    
+    /* Принудительное отображение кнопок на мобильных */
+    .navbar-nyt .navbar-nav .nav-item .btn-login,
+    .navbar-nyt .navbar-nav .nav-item .btn-register {
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        position: static !important;
+        margin: 0.5rem 0 !important;
+        text-align: center !important;
+        padding: 1rem !important;
+        border-radius: 0 !important;
+        font-size: 0.9rem !important;
+        font-weight: 600 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.05em !important;
+    }
+    
+    /* Специальные стили для кнопок в мобильном меню */
+    .navbar-nyt .navbar-collapse.show .btn-login,
+    .navbar-nyt .navbar-collapse.show .btn-register {
+        display: block !important;
+        width: 100% !important;
+        margin: 0.5rem 0 !important;
+        text-align: center !important;
+        padding: 1rem !important;
+        border-radius: 0 !important;
+        font-size: 0.9rem !important;
+        font-weight: 600 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.05em !important;
     }
     
     /* Исправление для dropdown на mobile */
@@ -370,6 +558,21 @@
     
     .navbar-nyt .nav-link {
         font-size: 0.85rem;
+    }
+    
+    /* Кнопки на очень маленьких экранах */
+    .navbar-nyt .btn-login,
+    .navbar-nyt .btn-register {
+        font-size: 0.8rem !important;
+        padding: 0.8rem !important;
+        margin: 0.3rem 0 !important;
+    }
+    
+    .navbar-nyt .navbar-collapse.show .btn-login,
+    .navbar-nyt .navbar-collapse.show .btn-register {
+        font-size: 0.8rem !important;
+        padding: 0.8rem !important;
+        margin: 0.3rem 0 !important;
     }
 }
 
@@ -406,13 +609,15 @@
 }
 
 /* Анимация появления мобильного меню */
-.navbar-nyt .navbar-collapse {
-    transform: translateY(-10px);
-    opacity: 0;
-    transition: all 0.3s ease;
-}
-
-.navbar-nyt .navbar-collapse.show {
-    transform: translateY(0);
-    opacity: 1;
+@media (max-width: 991.98px) {
+    .navbar-nyt .navbar-collapse {
+        transform: translateY(-10px);
+        opacity: 0;
+        transition: all 0.3s ease;
+    }
+    
+    .navbar-nyt .navbar-collapse.show {
+        transform: translateY(0);
+        opacity: 1;
+    }
 } 

@@ -6,7 +6,7 @@
 <div class="container mt-5">
     <div class="row justify-content-center">
         <div class="col-md-6 col-lg-4">
-            <div class="card shadow">
+            <div class="card login-card shadow-lg">
                 <div class="card-header text-center">
                     <h4><i class="fas fa-sign-in-alt"></i> Вход в систему</h4>
                 </div>
@@ -24,21 +24,21 @@
                         {% csrf_token %}
                         <div class="mb-3">
                             <label for="username" class="form-label">Имя пользователя</label>
-                            <input type="text" class="form-control" id="username" name="username" required placeholder="Введите имя пользователя">
+                            <input type="text" class="form-control login-input" id="username" name="username" required placeholder="Введите имя пользователя">
                         </div>
                         <div class="mb-3">
                             <label for="password" class="form-label">Пароль</label>
-                            <input type="password" class="form-control" id="password" name="password" required placeholder="Введите пароль">
+                            <input type="password" class="form-control login-input" id="password" name="password" required placeholder="Введите пароль">
                         </div>
                         <div class="d-grid">
-                            <button type="submit" class="btn btn-primary">
+                            <button type="submit" class="btn btn-login-submit">
                                 <i class="fas fa-sign-in-alt"></i> Войти
                             </button>
                         </div>
                     </form>
                 </div>
                 <div class="card-footer text-center">
-                    <p class="mb-0">Нет аккаунта? <a href="{% url 'dictionary:register' %}">Зарегистрироваться</a></p>
+                    <p class="mb-0">Нет аккаунта? <a href="{% url 'dictionary:register' %}" class="register-link">Зарегистрироваться</a></p>
                 </div>
             </div>
         </div>
@@ -46,21 +46,203 @@
 </div>
 
 <style>
-.form-control {
-    border-radius: 0.375rem;
-    border: 1px solid #ced4da;
-    padding: 0.375rem 0.75rem;
+/* Стили для страницы логина в темной теме */
+.login-card {
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+    border: 1px solid #333;
+    border-radius: 0;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    color: #fff;
+    font-family: "Charter", "Georgia", serif;
+}
+
+.login-card .card-header {
+    background: linear-gradient(135deg, #000 0%, #1a1a1a 100%);
+    border-bottom: 2px solid #333;
+    color: #fff;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 1.5rem;
+}
+
+.login-card .card-header h4 {
+    margin: 0;
+    font-size: 1.3rem;
+    font-weight: 900;
+    color: #fff;
+}
+
+.login-card .card-header i {
+    margin-right: 0.5rem;
+    color: #fff;
+}
+
+.login-card .card-body {
+    padding: 2rem;
+    background-color: #1a1a1a;
+}
+
+.login-card .card-footer {
+    background: linear-gradient(135deg, #000 0%, #1a1a1a 100%);
+    border-top: 2px solid #333;
+    padding: 1.5rem;
+    color: #ccc;
+}
+
+/* Стили для форм */
+.form-label {
+    color: #fff;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.login-input {
+    background-color: #2d2d2d !important;
+    border: 1px solid #444 !important;
+    border-radius: 0 !important;
+    color: #fff !important;
+    padding: 0.75rem 1rem !important;
+    font-size: 1rem !important;
+    font-family: "Charter", "Georgia", serif !important;
+    transition: all 0.3s ease !important;
+}
+
+.login-input::placeholder {
+    color: #888 !important;
+}
+
+.login-input:focus {
+    background-color: #333 !important;
+    border-color: #fff !important;
+    box-shadow: 0 0 0 3px rgba(255,255,255,0.1) !important;
+    outline: none !important;
+    color: #fff !important;
+}
+
+/* Кнопка входа */
+.btn-login-submit {
+    background: linear-gradient(135deg, #000 0%, #1a1a1a 100%);
+    color: #fff;
+    border: 2px solid #fff;
+    border-radius: 0;
+    font-family: "Charter", "Georgia", serif;
     font-size: 1rem;
-    line-height: 1.5;
-    color: #495057;
-    background-color: #fff;
-    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 1rem;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-login-submit:hover {
+    background: linear-gradient(135deg, #fff 0%, #f8f8f8 100%);
+    color: #000;
+    border-color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(255,255,255,0.3);
+}
+
+.btn-login-submit:active {
+    transform: translateY(0);
+}
+
+.btn-login-submit i {
+    margin-right: 0.5rem;
+}
+
+/* Ссылка регистрации */
+.register-link {
+    color: #fff;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    border-bottom: 1px solid transparent;
+}
+
+.register-link:hover {
+    color: #fff;
+    text-decoration: none;
+    border-bottom-color: #fff;
+    text-shadow: 0 0 8px rgba(255,255,255,0.5);
+}
+
+/* Алерты */
+.alert {
+    border-radius: 0;
+    border: none;
+    font-family: "Charter", "Georgia", serif;
+}
+
+.alert-danger {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    color: #fff;
+    border-left: 4px solid #fff;
+}
+
+.alert-success {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: #fff;
+    border-left: 4px solid #fff;
+}
+
+.alert-info {
+    background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+    color: #fff;
+    border-left: 4px solid #fff;
+}
+
+/* Анимация появления */
+.login-card {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .login-card .card-body {
+        padding: 1.5rem;
+    }
+    
+    .login-card .card-header {
+        padding: 1rem;
+    }
+    
+    .login-card .card-header h4 {
+        font-size: 1.1rem;
+    }
+    
+    .btn-login-submit {
+        padding: 0.8rem;
+        font-size: 0.9rem;
+    }
+}
+
+/* Дополнительные эффекты */
+.login-input:focus + .form-label {
+    color: #fff;
+    text-shadow: 0 0 8px rgba(255,255,255,0.3);
 }
 
 .form-control:focus {
-    border-color: #80bdff;
-    outline: 0;
-    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    border-color: #fff !important;
+    box-shadow: 0 0 0 3px rgba(255,255,255,0.1) !important;
+    outline: none !important;
 }
 </style>
 {% endblock %} 
