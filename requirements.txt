@@ -1,7 +1,8 @@
 asgiref==3.9.1
 Django==4.0.8
+django-tinymce==3.7.1
+Pillow==10.0.0
 gunicorn
-Pillow==9.3.0
 python-dotenv
 sqlparse==0.5.3
 typing_extensions==4.14.1

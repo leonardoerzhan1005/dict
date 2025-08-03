@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import get_user_model
+from tinymce.widgets import TinyMCE
 from .models import Word, Category, Language, Tag
 
 User = get_user_model()
@@ -36,24 +37,48 @@ class CustomUserCreationForm(UserCreationForm):
 class WordForm(forms.ModelForm):
     """Форма для создания/редактирования слов"""
     meaning = forms.CharField(
-        widget=forms.Textarea(attrs={
-            'class': 'form-control',
-            'rows': 5,
-            'placeholder': 'Введите значение слова...'
-        }),
+        widget=TinyMCE(
+            attrs={'cols': 80, 'rows': 20},
+            mce_attrs={
+                'height': 300,
+                'width': '100%',
+                'plugins': 'save link image imagetools table paste lists advlist wordcount charmap nonbreaking anchor pagebreak insertdatetime media directionality emoticons template paste textpattern imagetools codesample',
+                'toolbar1': 'save | formatselect | bold italic underline | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image media | forecolor backcolor emoticons',
+                'toolbar2': 'table | charmap | pagebreak | codesample | ltr rtl | spellchecker | advlist | autolink | lists charmap | print preview | anchor',
+                'contextmenu': 'formats | link image',
+                'menubar': True,
+                'statusbar': True,
+                'language': 'ru',
+                'relative_urls': False,
+                'remove_script_host': False,
+                'convert_urls': False,
+                'entity_encoding': 'raw',
+                'verify_html': False,
+                'browser_spellcheck': True,
+                'paste_data_images': True,
+                'images_upload_url': '/admin/tinymce/upload/',
+                'images_upload_credentials': True,
+                'automatic_uploads': True,
+                'file_picker_types': 'image',
+                'images_reuse_filename': True,
+                'images_upload_base_path': '/media/',
+            }
+        ),
         label='Значение',
-        help_text='Поддерживает многострочный текст'
+        help_text='Используйте редактор для форматирования текста'
     )
     
     class Meta:
         model = Word
-        fields = ['word', 'meaning', 'language', 'category', 'tags', 'status']
+        fields = ['word', 'meaning', 'language', 'category', 'tags', 'status', 'pronunciation', 'difficulty']
         widgets = {
             'word': forms.TextInput(attrs={'class': 'form-control'}),
             'language': forms.Select(attrs={'class': 'form-select'}),
             'category': forms.Select(attrs={'class': 'form-select'}),
             'tags': forms.SelectMultiple(attrs={'class': 'form-select'}),
             'status': forms.Select(attrs={'class': 'form-select'}),
+            'pronunciation': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'МФА транскрипция'}),
+            'difficulty': forms.Select(attrs={'class': 'form-select'}),
         }
 
 class WordTranslationForm(forms.Form):

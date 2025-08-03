@@ -109,6 +109,36 @@
                             {% endif %}
                         </div>
                         
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.pronunciation.id_for_label }}" class="form-label">
+                                    {{ form.pronunciation.label }}
+                                </label>
+                                {{ form.pronunciation }}
+                                {% if form.pronunciation.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.pronunciation.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.difficulty.id_for_label }}" class="form-label">
+                                    {{ form.difficulty.label }}
+                                </label>
+                                {{ form.difficulty }}
+                                {% if form.difficulty.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.difficulty.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
                         <div class="mb-3">
                             <label for="{{ form.meaning.id_for_label }}" class="form-label">
                                 {{ form.meaning.label }} <span class="text-danger">*</span>
@@ -151,6 +181,10 @@
                         <li>• Используйте <em>курсив</em> для иностранных слов или примеров</li>
                         <li>• Создавайте списки для перечисления значений</li>
                         <li>• Добавляйте примеры предложений</li>
+                        <li>• Используйте <u>подчеркивание</u> для акцента</li>
+                        <li>• Добавляйте цвета для выделения важных частей</li>
+                        <li>• Вставляйте изображения для иллюстрации</li>
+                        <li>• Создавайте таблицы для структурированной информации</li>
                     </ul>
                     
                     <h6>Общие рекомендации:</h6>

@@ -3,6 +3,36 @@
 
 {% block title %}Редактирование переводов - {{ word.word }}{% endblock %}
 
+{% block extra_head %}
+<script src="/static/tinymce/tinymce.min.js"></script>
+<script>
+// Проверяем загрузку TinyMCE
+window.addEventListener('load', function() {
+    console.log('Страница загружена');
+    if (typeof tinymce !== 'undefined') {
+        console.log('TinyMCE загружен успешно');
+    } else {
+        console.error('TinyMCE не загружен');
+    }
+});
+</script>
+<style>
+.tox-tinymce {
+    
+    
+}
+.tox .tox-toolbar {
+    padding-bottom: 100px;
+}
+.tox .tox-tbtn {
+    color: white !important;
+}
+.tox .tox-tbtn:hover {
+    background-color: rgba(255,255,255,0.2) !important;
+}
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
@@ -22,10 +52,10 @@
                     <h6><i class="fas fa-info-circle"></i> Информация о слове</h6>
                 </div>
                 <div class="card-body">
-                    <p><strong>Слово:</strong> {{ word.word }}</p>
+                    <h3><strong>Слово:</strong> {{ word.word }}</h3>
                     <p><strong>Значение:</strong></p>
-                    <div class="border p-3 bg-light">
-                        {{ word.meaning|linebreaks }}
+                    <div class="border p-3 bg-light tinymce-content">
+                        {{ word.meaning|safe }}
                     </div>
                     <p><strong>Язык:</strong> {{ word.language.name }} ({{ word.language.code }})</p>
                     <p><strong>Категория:</strong> 
@@ -98,14 +128,19 @@
                                     <div class="form-text">Обязательное поле</div>
                                 </div>
                                 <div class="form-group mb-3">
-                                    <label for="translation_meaning_{{ language.code }}" class="form-label">Значение</label>
-                                    <textarea class="form-control translation-field" 
+                                    <label for="translation_meaning_{{ language.code }}" class="form-label">
+                                        Значение
+                                        <button type="button" class="btn btn-sm btn-outline-secondary ms-2" onclick="copyOriginalMeaning()" title="Копировать значение с исходного слова">
+                                            <i class="fas fa-copy"></i> Копировать
+                                        </button>
+                                    </label>
+                                    <textarea class="form-control translation-field tinymce-editor" 
                                               id="translation_meaning_{{ language.code }}" 
                                               name="translation_meaning_{{ language.code }}"
-                                              rows="3"
+                                              rows="6"
                                               placeholder="Введите значение на {{ language.name }}"
                                               data-language="{{ language.code }}">{{ existing_translations|get_item:language.code|get_item:'meaning'|default:'' }}</textarea>
-                                    <div class="form-text">Поддерживает многострочный текст</div>
+                                    <div class="form-text">Поддерживает форматирование текста, изображения и таблицы</div>
                                 </div>
                                 <div class="form-group">
                                     <label for="note_{{ language.code }}" class="form-label">Примечание</label>
@@ -138,6 +173,99 @@
 </div>
 
 <script>
+// Инициализация TinyMCE для всех редакторов
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM загружен, инициализируем TinyMCE...');
+    
+    // Проверяем, что TinyMCE загружен
+    if (typeof tinymce === 'undefined') {
+        console.error('TinyMCE не загружен!');
+        return;
+    }
+    
+    console.log('TinyMCE доступен:', typeof tinymce);
+    
+    const editors = document.querySelectorAll('.tinymce-editor');
+    console.log('Найдено редакторов:', editors.length);
+    
+    editors.forEach(function(editor) {
+        console.log('Инициализируем редактор:', editor.id);
+        tinymce.init({
+            selector: '#' + editor.id,
+            height: 300,
+            width: '100%',
+            plugins: 'save link image table paste lists advlist wordcount charmap nonbreaking anchor pagebreak insertdatetime media directionality emoticons template paste textpattern codesample advlist autolink lists link image charmap preview anchor pagebreak insertdatetime media table code help wordcount',
+            toolbar1: 'save | formatselect | bold italic underline strikethrough | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image media table | forecolor backcolor emoticons | fontselect fontsizeselect',
+            toolbar2: 'table | charmap | pagebreak | codesample | ltr rtl | spellchecker | advlist | autolink | lists charmap | print preview | anchor | insertdatetime | media | help',
+            toolbar3: 'undo redo | cut copy paste | searchreplace | visualblocks visualchars | fullscreen | insertfile image media template link anchor | ltr rtl',
+            contextmenu: 'formats | link image table',
+            menubar: true,
+            statusbar: true,
+            language: 'ru',
+            content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; font-size: 14px; line-height: 1.6; }',
+            extended_valid_elements: 'img[src|alt|title|width|height|style],a[href|target|title],table[width|height|border|cellpadding|cellspacing|style],tr[style],td[width|height|style|colspan|rowspan],th[width|height|style|colspan|rowspan]',
+            images_upload_url: '/tinymce/upload/image/',
+            file_picker_types: 'image file',
+            images_reuse_filename: true,
+            images_upload_base_path: '/media/',
+            automatic_uploads: true,
+            images_upload_credentials: true,
+            paste_data_images: true,
+            browser_spellcheck: true,
+            verify_html: false,
+            entity_encoding: 'raw',
+            relative_urls: false,
+            remove_script_host: false,
+            convert_urls: false,
+            setup: function(editor) {
+                console.log('TinyMCE инициализирован для:', editor.id);
+                
+                // Подавляем предупреждения о политике разрешений
+                if (window.console && window.console.warn) {
+                    var originalWarn = console.warn;
+                    console.warn = function() {
+                        if (arguments[0] && typeof arguments[0] === 'string' && 
+                            arguments[0].includes('Permissions policy violation')) {
+                            return;
+                        }
+                        return originalWarn.apply(console, arguments);
+                    };
+                }
+                
+                // Функция для получения CSRF токена
+                function getCookie(name) {
+                    var cookieValue = null;
+                    if (document.cookie && document.cookie !== '') {
+                        var cookies = document.cookie.split(';');
+                        for (var i = 0; i < cookies.length; i++) {
+                            var cookie = cookies[i].trim();
+                            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                                break;
+                            }
+                        }
+                    }
+                    return cookieValue;
+                }
+                
+                // Добавляем обработчик для отладки
+                editor.on('change', function() {
+                    console.log('Контент изменен в:', editor.id);
+                });
+                
+                // Добавляем обработчик для загрузки изображений
+                editor.on('BeforeSetContent', function(e) {
+                    console.log('Устанавливаем контент в:', editor.id);
+                });
+                
+                editor.on('SetContent', function(e) {
+                    console.log('Контент установлен в:', editor.id);
+                });
+            }
+        });
+    });
+});
+
 // Валидация формы
 document.getElementById('translation-form').addEventListener('submit', function(e) {
     const requiredFields = document.querySelectorAll('input[name^="translation_word_"]');
@@ -161,27 +289,47 @@ document.getElementById('translation-form').addEventListener('submit', function(
 // Обновление статуса при вводе
 document.querySelectorAll('.translation-field').forEach(field => {
     field.addEventListener('input', function() {
-        const card = this.closest('.card');
-        const badge = card.querySelector('.badge');
-        
-        if (this.name.startsWith('translation_word_') && this.value.trim()) {
-            card.classList.remove('border-warning');
-            card.classList.add('border-success');
-            if (badge) {
-                badge.textContent = 'Переведено';
-                badge.classList.remove('bg-warning');
-                badge.classList.add('bg-success');
-            }
-        } else if (this.name.startsWith('translation_word_') && !this.value.trim()) {
-            card.classList.remove('border-success');
-            card.classList.add('border-warning');
-            if (badge) {
-                badge.textContent = 'Не переведено';
-                badge.classList.remove('bg-success');
-                badge.classList.add('bg-warning');
-            }
-        }
+        updateCardStatus(this);
     });
+});
+
+// Функция обновления статуса карточки
+function updateCardStatus(field) {
+    const card = field.closest('.card');
+    const badge = card.querySelector('.badge');
+    
+    if (field.name.startsWith('translation_word_') && field.value.trim()) {
+        card.classList.remove('border-warning');
+        card.classList.add('border-success');
+        if (badge) {
+            badge.textContent = 'Переведено';
+            badge.classList.remove('bg-warning');
+            badge.classList.add('bg-success');
+        }
+    } else if (field.name.startsWith('translation_word_') && !field.value.trim()) {
+        card.classList.remove('border-success');
+        card.classList.add('border-warning');
+        if (badge) {
+            badge.textContent = 'Не переведено';
+            badge.classList.remove('bg-success');
+            badge.classList.add('bg-warning');
+        }
+    }
+}
+
+// Добавляем обработчики для TinyMCE редакторов
+document.addEventListener('DOMContentLoaded', function() {
+    // Ждем инициализации TinyMCE
+    setTimeout(function() {
+        document.querySelectorAll('.tinymce-editor').forEach(function(textarea) {
+            const editor = tinymce.get(textarea.id);
+            if (editor) {
+                editor.on('change', function() {
+                    updateCardStatus(textarea);
+                });
+            }
+        });
+    }, 1000);
 });
 
 // Копирование значения с исходного слова
@@ -190,7 +338,13 @@ function copyOriginalMeaning() {
     if (originalMeaning) {
         document.querySelectorAll('textarea[name^="translation_meaning_"]').forEach(textarea => {
             if (!textarea.value.trim()) {
-                textarea.value = originalMeaning;
+                // Если это TinyMCE редактор, используем его API
+                const editor = tinymce.get(textarea.id);
+                if (editor) {
+                    editor.setContent(originalMeaning);
+                } else {
+                    textarea.value = originalMeaning;
+                }
             }
         });
     }

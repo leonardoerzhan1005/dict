@@ -28,7 +28,7 @@ SECRET_KEY = 'django-insecure-uz*fy67t&d&)d+a@$ao&6y@&hj7mm)t^^#vge5x79w8=+zo5r1
 DEBUG = True
 
 
-ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS', '').split(',')
+ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1,testserver').split(',')
 
 CSRF_TRUSTED_ORIGINS = [
     'https://devdesign.kz',
@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'tinymce',
     'dictionary',
 ]
 
@@ -133,6 +134,9 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.getenv('DJANGO_STATIC_ROOT', BASE_DIR / 'staticfiles')
+STATICFILES_DIRS = [
+    BASE_DIR / 'static',
+]
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
@@ -157,3 +161,34 @@ USE_L10N = True
 LOCALE_PATHS = [
     BASE_DIR / 'locale',
 ]
+
+# TinyMCE Configuration
+TINYMCE_DEFAULT_CONFIG = {
+    'height': 360,
+    'width': 'auto',
+    'cleanup_on_startup': True,
+    'custom_undo_redo_levels': 20,
+    'selector': 'textarea',
+    'theme': 'silver',
+    'plugins': 'save link image imagetools table paste lists advlist wordcount charmap nonbreaking anchor pagebreak insertdatetime media directionality emoticons template paste textpattern imagetools codesample',
+    'toolbar1': 'save | formatselect | bold italic underline | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image media | forecolor backcolor emoticons',
+    'toolbar2': 'table | charmap | pagebreak | codesample | ltr rtl | spellchecker | advlist | autolink | lists charmap | print preview | anchor',
+    'contextmenu': 'formats | link image',
+    'menubar': True,
+    'statusbar': True,
+    'language': 'ru',
+    'content_css': '/static/css/tinymce.css',
+    'relative_urls': False,
+    'remove_script_host': False,
+    'convert_urls': False,
+    'entity_encoding': 'raw',
+    'verify_html': False,
+    'browser_spellcheck': True,
+    'paste_data_images': True,
+    'images_upload_url': '/admin/tinymce/upload/',
+    'images_upload_credentials': True,
+    'automatic_uploads': True,
+    'file_picker_types': 'image',
+    'images_reuse_filename': True,
+    'images_upload_base_path': '/media/',
+}

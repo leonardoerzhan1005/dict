@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="{{ user_language|default:'ru' }}">
 <head>
@@ -9,7 +10,16 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- FontAwesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- TinyMCE Content Styles -->
+    <link href="{% static 'css/tinymce-content.css' %}" rel="stylesheet">
+    <!-- Word Detail NYT Styles -->
+    <link href="{% static 'css/word-detail-nyt.css' %}" rel="stylesheet">
+    <!-- Home NYT Styles -->
+    <link href="{% static 'css/home-nyt.css' %}" rel="stylesheet">
+    <!-- Navbar NYT Styles -->
+    <link href="{% static 'css/navbar-nyt.css' %}" rel="stylesheet">
+    
+    {% block extra_head %}{% endblock %}
 
     <style>
         :root {
@@ -320,134 +330,93 @@
     {% block extra_css %}{% endblock %}
 </head>
 <body>
-    <!-- Навигация с Tailwind CSS -->
-    <nav class="bg-gradient-to-r from-blue-800 to-blue-900 shadow-lg">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16">
-                <!-- Логотип и основные ссылки -->
-                <div class="flex items-center">
-                    <a href="{% url 'dictionary:home' %}" class="flex items-center text-white hover:text-blue-200 transition-all duration-300 transform hover:scale-105">
-                        <i class="fas fa-book text-xl mr-2"></i>
-                        <span class="text-xl font-bold">Словарь</span>
-                    </a>
-                    
-                    <!-- Основное меню -->
-                    <div class="hidden md:flex ml-10 space-x-8">
-                        <a href="{% url 'dictionary:home' %}" class="text-white hover:text-blue-200 px-3 py-2 rounded-md text-sm font-medium transition-all duration-300 transform hover:scale-105 hover:bg-blue-700 hover:shadow-lg nav-link-hover">
-                            <i class="fas fa-home mr-1"></i> Главная
+    <!-- Навигация в стиле NYT -->
+    <nav class="navbar navbar-expand-lg navbar-nyt">
+        <div class="container">
+            <!-- Логотип -->
+            <a class="navbar-brand" href="{% url 'dictionary:home' %}">
+                <i class="fas fa-book"></i>
+                СЛОВАРЬ
+            </a>
+            
+            <!-- Кнопка мобильного меню -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <i class="fas fa-bars"></i>
+            </button>
+            
+            <!-- Основное меню -->
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}" href="{% url 'dictionary:home' %}">
+                            <i class="fas fa-home"></i> ГЛАВНАЯ
                         </a>
-                        {% if user.is_authenticated %}
-                            <a href="{% url 'dictionary:profile' %}" class="text-white hover:text-blue-200 px-3 py-2 rounded-md text-sm font-medium transition-all duration-300 transform hover:scale-105 hover:bg-blue-700 hover:shadow-lg nav-link-hover">
-                                <i class="fas fa-user mr-1"></i> Профиль
+                    </li>
+                    {% if user.is_authenticated %}
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.resolver_match.url_name == 'profile' %}active{% endif %}" href="{% url 'dictionary:profile' %}">
+                                <i class="fas fa-user"></i> ПРОФИЛЬ
                             </a>
-                            {% if user.is_staff %}
-                                <a href="{% url 'dictionary:translation_dashboard' %}" class="text-white hover:text-blue-200 px-3 py-2 rounded-md text-sm font-medium transition-all duration-300 transform hover:scale-105 hover:bg-blue-700 hover:shadow-lg nav-link-hover">
-                                    <i class="fas fa-language mr-1"></i> Переводы
+                        </li>
+                        {% if user.is_staff %}
+                            <li class="nav-item">
+                                <a class="nav-link {% if request.resolver_match.url_name == 'translation_dashboard' %}active{% endif %}" href="{% url 'dictionary:translation_dashboard' %}">
+                                    <i class="fas fa-language"></i> ПЕРЕВОДЫ
                                 </a>
-                            {% endif %}
+                            </li>
                         {% endif %}
-                    </div>
-                </div>
+                    {% endif %}
+                </ul>
                 
                 <!-- Правая часть меню -->
-                <div class="flex items-center space-x-4">
+                <ul class="navbar-nav">
                     <!-- Переключатель языка -->
-                    <div class="relative">
-                        <button class="text-white hover:text-blue-200 px-3 py-2 rounded-md text-sm font-medium transition-all duration-300 transform hover:scale-105 hover:bg-blue-700 hover:shadow-lg flex items-center" id="language-dropdown">
-                            <i class="fas fa-globe mr-1"></i>
-                            {% if user_language == 'ru' %}Русский
-                            {% elif user_language == 'kk' %}Қазақша
-                            {% elif user_language == 'en' %}English
-                            {% elif user_language == 'tr' %}Türkçe
-                            {% else %}Русский{% endif %}
-                            <i class="fas fa-chevron-down ml-1 text-xs transition-transform duration-300"></i>
-                        </button>
-                        <div class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 hidden" id="language-menu">
-                            <a href="?lang=ru" class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700">
-                                <i class="fas fa-flag mr-2"></i>Русский
-                            </a>
-                            <a href="?lang=kk" class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700">
-                                <i class="fas fa-flag mr-2"></i>Қазақша
-                            </a>
-                            <a href="?lang=en" class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700">
-                                <i class="fas fa-flag mr-2"></i>English
-                            </a>
-                            <a href="?lang=tr" class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700">
-                                <i class="fas fa-flag mr-2"></i>Türkçe
-                            </a>
-                        </div>
-                    </div>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle language-dropdown" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-globe"></i>
+                            {% if user_language == 'ru' %}РУССКИЙ
+                            {% elif user_language == 'kk' %}ҚАЗАҚША
+                            {% elif user_language == 'en' %}ENGLISH
+                            {% elif user_language == 'tr' %}TÜRKÇE
+                            {% else %}РУССКИЙ{% endif %}
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="?lang=ru"><i class="fas fa-flag"></i> Русский</a></li>
+                            <li><a class="dropdown-item" href="?lang=kk"><i class="fas fa-flag"></i> Қазақша</a></li>
+                            <li><a class="dropdown-item" href="?lang=en"><i class="fas fa-flag"></i> English</a></li>
+                            <li><a class="dropdown-item" href="?lang=tr"><i class="fas fa-flag"></i> Türkçe</a></li>
+                        </ul>
+                    </li>
                     
                     <!-- Меню пользователя -->
                     {% if user.is_authenticated %}
-                        <div class="relative">
-                            <button class="text-white hover:text-blue-200 px-3 py-2 rounded-md text-sm font-medium transition-all duration-300 transform hover:scale-105 hover:bg-blue-700 hover:shadow-lg flex items-center" id="user-dropdown">
-                                <i class="fas fa-user mr-1"></i>
-                                {{ user.username }}
-                                <i class="fas fa-chevron-down ml-1 text-xs transition-transform duration-300"></i>
-                            </button>
-                            <div class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 hidden" id="user-menu">
-                                <a href="{% url 'dictionary:profile' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700">
-                                    <i class="fas fa-user mr-2"></i> Профиль
-                                </a>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-user"></i> {{ user.username|upper }}
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="{% url 'dictionary:profile' %}"><i class="fas fa-user"></i> Профиль</a></li>
                                 {% if user.is_staff %}
-                                    <a href="{% url 'admin:index' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700">
-                                        <i class="fas fa-cog mr-2"></i> Админка
-                                    </a>
-                                    <a href="{% url 'dictionary:translation_dashboard' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700">
-                                        <i class="fas fa-language mr-2"></i> Переводы
-                                    </a>
+                                    <li><a class="dropdown-item" href="{% url 'admin:index' %}"><i class="fas fa-cog"></i> Админка</a></li>
+                                    <li><a class="dropdown-item" href="{% url 'dictionary:translation_dashboard' %}"><i class="fas fa-language"></i> Переводы</a></li>
+                                    <li><hr class="dropdown-divider"></li>
                                 {% endif %}
-                                <div class="border-t border-gray-100 my-1"></div>
-                                <a href="{% url 'dictionary:logout' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700">
-                                    <i class="fas fa-sign-out-alt mr-2"></i> Выйти
-                                </a>
-                            </div>
-                        </div>
+                                <li><a class="dropdown-item" href="{% url 'dictionary:logout' %}"><i class="fas fa-sign-out-alt"></i> Выйти</a></li>
+                            </ul>
+                        </li>
                     {% else %}
-                        <div class="flex items-center space-x-2">
-                            <a href="{% url 'dictionary:login' %}" class="text-white hover:text-blue-200 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200">
-                                <i class="fas fa-sign-in-alt mr-1"></i> Войти
+                        <li class="nav-item">
+                            <a class="nav-link btn-login" href="{% url 'dictionary:login' %}">
+                                <i class="fas fa-sign-in-alt"></i> ВОЙТИ
                             </a>
-                            <a href="{% url 'dictionary:register' %}" class="btn-gradient px-4 py-2 rounded-md text-sm font-medium">
-                                <i class="fas fa-user-plus mr-1"></i> Регистрация
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link btn-register" href="{% url 'dictionary:register' %}">
+                                <i class="fas fa-user-plus"></i> РЕГИСТРАЦИЯ
                             </a>
-                        </div>
+                        </li>
                     {% endif %}
-                    
-                    <!-- Мобильное меню -->
-                    <div class="md:hidden">
-                        <button class="text-white hover:text-blue-200 p-2 rounded-md" id="mobile-menu-button">
-                            <i class="fas fa-bars text-xl"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Мобильное меню -->
-            <div class="md:hidden hidden" id="mobile-menu">
-                <div class="px-2 pt-2 pb-3 space-y-1 bg-blue-800 rounded-b-lg">
-                    <a href="{% url 'dictionary:home' %}" class="text-white hover:text-blue-200 block px-3 py-2 rounded-md text-base font-medium">
-                        <i class="fas fa-home mr-2"></i> Главная
-                    </a>
-                    {% if user.is_authenticated %}
-                        <a href="{% url 'dictionary:profile' %}" class="text-white hover:text-blue-200 block px-3 py-2 rounded-md text-base font-medium">
-                            <i class="fas fa-user mr-2"></i> Профиль
-                        </a>
-                        {% if user.is_staff %}
-                            <a href="{% url 'dictionary:translation_dashboard' %}" class="text-white hover:text-blue-200 block px-3 py-2 rounded-md text-base font-medium">
-                                <i class="fas fa-language mr-2"></i> Переводы
-                            </a>
-                        {% endif %}
-                    {% else %}
-                        <a href="{% url 'dictionary:login' %}" class="text-white hover:text-blue-200 block px-3 py-2 rounded-md text-base font-medium">
-                            <i class="fas fa-sign-in-alt mr-2"></i> Войти
-                        </a>
-                        <a href="{% url 'dictionary:register' %}" class="text-white hover:text-blue-200 block px-3 py-2 rounded-md text-base font-medium">
-                            <i class="fas fa-user-plus mr-2"></i> Регистрация
-                        </a>
-                    {% endif %}
-                </div>
+                </ul>
             </div>
         </div>
     </nav>
@@ -470,15 +439,15 @@
     </main>
 
     <!-- Footer -->
-    <footer class="bg-gradient-to-r from-blue-900 to-blue-800 text-white py-8 mt-5">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div>
-                    <h5 class="text-xl font-bold mb-2 text-gradient">Многоязычный словарь</h5>
-                    <p class="text-blue-100">Поиск слов на русском, казахском, английском и турецком языках</p>
+    <footer class="bg-dark text-white py-5 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5 class="text-xl font-bold mb-2">Многоязычный словарь</h5>
+                    <p class="text-muted">Поиск слов на русском, казахском, английском и турецком языках</p>
                 </div>
-                <div class="text-right">
-                    <p class="text-blue-100">&copy; 2024 Словарь. Все права защищены.</p>
+                <div class="col-md-6 text-md-end">
+                    <p class="text-muted">&copy; 2024 Словарь. Все права защищены.</p>
                 </div>
             </div>
         </div>
@@ -564,36 +533,51 @@
                 });
             });
             
-            // Dropdown меню для языка
-            $('#language-dropdown').on('click', function(e) {
-                e.preventDefault();
-                $('#language-menu').toggleClass('hidden');
-                $('#user-menu').addClass('hidden');
-            });
+            // Анимация появления элементов
+            $('.word-card').addClass('animate-fade-in-up');
             
-            // Dropdown меню для пользователя
-            $('#user-dropdown').on('click', function(e) {
-                e.preventDefault();
-                $('#user-menu').toggleClass('hidden');
-                $('#language-menu').addClass('hidden');
-            });
+            // Улучшенные hover эффекты для меню
+            $('.navbar-nyt .nav-link').hover(
+                function() {
+                    $(this).addClass('hover');
+                },
+                function() {
+                    $(this).removeClass('hover');
+                }
+            );
             
-            // Мобильное меню
-            $('#mobile-menu-button').on('click', function() {
-                $('#mobile-menu').toggleClass('hidden');
+            // Анимация dropdown меню
+            $('.dropdown-toggle').on('click', function(e) {
+                e.preventDefault();
+                const dropdownMenu = $(this).next('.dropdown-menu');
+                
+                // Закрыть все другие dropdown
+                $('.dropdown-menu').not(dropdownMenu).removeClass('show');
+                
+                // Переключить текущий dropdown
+                dropdownMenu.toggleClass('show');
+                
+                // На mobile добавить анимацию
+                if (window.innerWidth <= 991) {
+                    dropdownMenu.slideToggle(200);
+                }
             });
             
             // Закрыть dropdown при клике вне
             $(document).on('click', function(e) {
-                if (!$(e.target).closest('.relative').length) {
-                    $('#language-menu, #user-menu').addClass('hidden');
+                if (!$(e.target).closest('.dropdown').length) {
+                    $('.dropdown-menu').removeClass('show').slideUp(200);
                 }
             });
             
-            // Анимация появления элементов
-            $('.word-card').addClass('animate-fade-in-up');
-            
-            // Убрали эффекты пульсации
+            // Обработка изменения размера окна
+            $(window).on('resize', function() {
+                if (window.innerWidth > 991) {
+                    $('.dropdown-menu').removeClass('show').show();
+                } else {
+                    $('.dropdown-menu').removeClass('show').hide();
+                }
+            });
         });
     </script>
     

@@ -16,6 +16,10 @@ urlpatterns = [
     path('register/', views.user_register, name='register'),
     path('profile/', views.user_profile, name='profile'),
     
+    # TinyMCE загрузка файлов
+    path('tinymce/upload/file/', views.tinymce_upload_file, name='tinymce_upload_file'),
+    path('tinymce/upload/image/', views.tinymce_upload_image, name='tinymce_upload_image'),
+    
     # Управление переводами
     path('translations/', views.translation_dashboard, name='translation_dashboard'),
     path('translations/category/<int:category_id>/', views.category_translations_edit, name='category_translations_edit'),

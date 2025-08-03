@@ -4,6 +4,7 @@ from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
 from django.db.models import Q
 from django.urls import reverse
+from tinymce.widgets import TinyMCE
 from .models import (
     Language, CustomUser, Category, CategoryTranslation, Tag, TagTranslation,
     Word, Translation, Example, Favourite, SearchHistory, WordLike,
@@ -147,14 +148,155 @@ class ExampleInline(admin.TabularInline):
 @admin.register(Word)
 class WordAdmin(admin.ModelAdmin):
     list_display = ['word', 'language', 'category', 'status', 'created_at']
-    list_filter = ['language', 'category', 'status', 'created_at']
+    list_filter = ['language', 'category', 'status', 'created_at', 'difficulty']
     search_fields = ['word', 'meaning']
     inlines = [TranslationInline]
     readonly_fields = ['created_at', 'updated_at']
     
+    def get_form(self, request, obj=None, **kwargs):
+        form = super().get_form(request, obj, **kwargs)
+        form.base_fields['meaning'].widget = TinyMCE(
+            attrs={'cols': 80, 'rows': 20},
+            mce_attrs={
+                'height': 500,
+                'width': '100%',
+                'plugins': 'save link image table paste lists advlist wordcount charmap nonbreaking anchor pagebreak insertdatetime media directionality emoticons template paste textpattern codesample advlist autolink lists link image charmap preview anchor pagebreak insertdatetime media table code help wordcount',
+                'toolbar1': 'save | formatselect | bold italic underline strikethrough | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image media table | forecolor backcolor emoticons | fontselect fontsizeselect',
+                'toolbar2': 'table | charmap | pagebreak | codesample | ltr rtl | spellchecker | advlist | autolink | lists charmap | print preview | anchor | insertdatetime | media | help',
+                'toolbar3': 'undo redo | cut copy paste | searchreplace | visualblocks visualchars | fullscreen | insertfile image media template link anchor | ltr rtl',
+                'contextmenu': 'formats | link image table',
+                'menubar': True,
+                'statusbar': True,
+                'language': 'ru',
+                'relative_urls': False,
+                'remove_script_host': False,
+                'convert_urls': False,
+                'entity_encoding': 'raw',
+                'verify_html': False,
+                'browser_spellcheck': True,
+                'paste_data_images': True,
+                'images_upload_url': '/tinymce/upload/image/',
+                'file_picker_types': 'image file',
+                'images_reuse_filename': True,
+                'images_upload_base_path': '/media/',
+                'automatic_uploads': True,
+                'images_upload_credentials': True,
+                'paste_data_images': True,
+                'file_picker_callback': 'file_picker_callback',
+                'setup': '''
+                    function(editor) {
+                        console.log('TinyMCE инициализирован');
+                        
+                        // Подавляем предупреждения о политике разрешений
+                        if (window.console && window.console.warn) {
+                            var originalWarn = console.warn;
+                            console.warn = function() {
+                                if (arguments[0] && typeof arguments[0] === 'string' && 
+                                    arguments[0].includes('Permissions policy violation')) {
+                                    return;
+                                }
+                                return originalWarn.apply(console, arguments);
+                            };
+                        }
+                        
+                        // Функция для получения CSRF токена
+                        function getCookie(name) {
+                            var cookieValue = null;
+                            if (document.cookie && document.cookie !== '') {
+                                var cookies = document.cookie.split(';');
+                                for (var i = 0; i < cookies.length; i++) {
+                                    var cookie = cookies[i].trim();
+                                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                                        break;
+                                    }
+                                }
+                            }
+                            return cookieValue;
+                        }
+                        
+                        // Добавляем обработчик для отладки
+                        editor.on('change', function() {
+                            console.log('Контент изменен');
+                        });
+                        
+                        // Добавляем обработчик для загрузки изображений
+                        editor.on('BeforeSetContent', function(e) {
+                            console.log('Устанавливаем контент:', e.content);
+                        });
+                        
+                        editor.on('SetContent', function(e) {
+                            console.log('Контент установлен');
+                        });
+                    }
+                ''',
+
+                'content_style': 'body { font-family: "Charter", "Georgia", "Times New Roman", serif; font-size: 16px; line-height: 1.7; color: #1a1a1a; } @import url("/static/css/tinymce-content.css");',
+                'browser_spellcheck': True,
+                'paste_data_images': True,
+                'automatic_uploads': True,
+                'images_upload_credentials': True,
+                'file_picker_types': 'image file',
+                'images_reuse_filename': True,
+                'images_upload_base_path': '/media/',
+                'verify_html': False,
+                'entity_encoding': 'raw',
+                'relative_urls': False,
+                'remove_script_host': False,
+                'convert_urls': False,
+                'extended_valid_elements': 'img[src|alt|title|width|height|style],a[href|target|title],table[width|height|border|cellpadding|cellspacing|style],tr[style],td[width|height|style|colspan|rowspan],th[width|height|style|colspan|rowspan]',
+                'custom_colors': 'FF0000,00FF00,0000FF,FFFF00,FF00FF,00FFFF,000000,FFFFFF',
+                'color_map': [
+                    '000000', 'Black',
+                    '993300', 'Burnt orange',
+                    '333300', 'Dark olive',
+                    '003300', 'Dark green',
+                    '003366', 'Dark azure',
+                    '000080', 'Navy Blue',
+                    '333399', 'Indigo',
+                    '333333', 'Very dark gray',
+                    '800000', 'Maroon',
+                    'FF6600', 'Orange',
+                    '808000', 'Olive',
+                    '008000', 'Green',
+                    '008080', 'Teal',
+                    '0000FF', 'Blue',
+                    '666699', 'Grayish blue',
+                    '808080', 'Gray',
+                    'FF0000', 'Red',
+                    'FF9900', 'Amber',
+                    '99CC00', 'Yellow green',
+                    '339966', 'Sea green',
+                    '33CCCC', 'Turquoise',
+                    '3366FF', 'Royal blue',
+                    '800080', 'Purple',
+                    '999999', 'Medium gray',
+                    'FF00FF', 'Magenta',
+                    'FFCC00', 'Gold',
+                    'FFFF00', 'Yellow',
+                    '00FF00', 'Lime',
+                    '00FFFF', 'Aqua',
+                    '00CCFF', 'Sky blue',
+                    '993366', 'Red violet',
+                    'FFFFFF', 'White',
+                    'FF99CC', 'Pink',
+                    'FFCC99', 'Peach',
+                    'FFFF99', 'Light yellow',
+                    'CCFFCC', 'Pale green',
+                    'CCFFFF', 'Pale cyan',
+                    '99CCFF', 'Light sky blue',
+                    'CC99FF', 'Plum'
+                ],
+            }
+        )
+        return form
+    
     fieldsets = (
         ('Основная информация', {
             'fields': ('word', 'meaning', 'language', 'category', 'tags')
+        }),
+        ('Дополнительная информация', {
+            'fields': ('pronunciation', 'difficulty')
         }),
         ('Статус', {
             'fields': ('status', 'is_deleted')
@@ -269,6 +411,8 @@ class CustomUserAdmin(UserAdmin):
     list_filter = ['is_moderator', 'is_verified', 'is_staff', 'is_active', 'preferred_language', 'date_joined']
     search_fields = ['username', 'email', 'first_name', 'last_name']
     ordering = ['username']
+    
+
     
     fieldsets = UserAdmin.fieldsets + (
         ('Дополнительная информация', {

@@ -12,6 +12,16 @@ from django.contrib.auth.models import User
 from .models import Category, CategoryTranslation, Tag, TagTranslation, Language, InterfaceTranslation, Word, Translation, CustomUser
 from .forms import CustomUserCreationForm, WordForm, WordTranslationForm
 import json
+import os
+import uuid
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.contrib.admin.views.decorators import staff_member_required
+from django.core.files.storage import default_storage
+from django.core.files.base import ContentFile
+from django.conf import settings
+from PIL import Image
+import mimetypes
 
 def home(request):
     """Главная страница с поиском слов"""
@@ -1461,3 +1471,67 @@ def term_detail(request, term_id):
     }
     
     return render(request, 'dictionary/term_detail.html', context)
+
+@csrf_exempt
+@staff_member_required
+def tinymce_upload_file(request):
+    """Загрузка файлов для TinyMCE"""
+    if request.method == 'POST':
+        uploaded_file = request.FILES.get('file')
+        if uploaded_file:
+            # Генерируем уникальное имя файла
+            file_extension = os.path.splitext(uploaded_file.name)[1]
+            unique_filename = f"{uuid.uuid4()}{file_extension}"
+            
+            # Определяем папку для файлов
+            file_path = f"tinymce/files/{unique_filename}"
+            
+            # Сохраняем файл
+            saved_path = default_storage.save(file_path, ContentFile(uploaded_file.read()))
+            
+            # Создаем правильный URL для файла
+            file_url = f"/media/{saved_path}"
+            
+            return JsonResponse({
+                'location': file_url,
+                'filename': unique_filename
+            }, content_type='application/json')
+    
+    return JsonResponse({'error': 'No file uploaded'}, status=400)
+
+@csrf_exempt
+@staff_member_required
+def tinymce_upload_image(request):
+    """Загрузка изображений для TinyMCE"""
+    if request.method == 'POST':
+        uploaded_image = request.FILES.get('file')
+        if uploaded_image:
+            # Проверяем, что это изображение
+            try:
+                img = Image.open(uploaded_image)
+                img.verify()
+            except Exception as e:
+                print(f"Ошибка валидации изображения: {e}")
+                return JsonResponse({'error': 'Invalid image file'}, status=400)
+            
+            # Генерируем уникальное имя файла
+            file_extension = os.path.splitext(uploaded_image.name)[1]
+            unique_filename = f"{uuid.uuid4()}{file_extension}"
+            
+            # Определяем папку для изображений
+            image_path = f"tinymce/images/{unique_filename}"
+            
+            # Сохраняем изображение
+            saved_path = default_storage.save(image_path, ContentFile(uploaded_image.read()))
+            
+            # Создаем правильный URL для изображения
+            image_url = f"/media/{saved_path}"
+            
+            print(f"Изображение загружено: {image_url}")
+            
+            return JsonResponse({
+                'location': image_url,
+                'filename': unique_filename
+            }, content_type='application/json')
+    
+    return JsonResponse({'error': 'No image uploaded'}, status=400)

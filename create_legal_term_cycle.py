@@ -48,7 +48,7 @@ def create_legal_term_cycle():
             language=language,
             meaning=legal_meaning,
             category=category,
-            pronunciation=f'[kənstʲɪtʊt͡sɪˈonːə prɐˈvojəvəj ɪnstʲɪˈtut ɐdmʲɪnʲɪstrɐˈtʲivnə prɐt͡sɛˈsʊəlʲnəvə prɐɪzˈvodstvə pə dʲɪˈlɐm ɐb ɐdmʲɪnʲɪstrɐˈtʲivnɨx prɐvənɐˈruʂɛnʲɪjəx v sfʲɪˈrʲə ɐbʲɪˈspʲɪt͡ʃɛnʲɪjə bʲɪzɐpɐˈsnostʲɪ dərɐˈʐnəvə dʲɪˈʐɛnʲɪjə]',
+            pronunciation=f'[]',
             difficulty='hard',
             status='approved'
         )

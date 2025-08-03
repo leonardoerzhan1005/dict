@@ -3,159 +3,161 @@
 {% block title %}{{ word.word }} - Многоязычный словарь{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1><i class="fas fa-book"></i> {{ word.word }}</h1>
-        <div>
-            {% if user.is_staff %}
-                <a href="{% url 'dictionary:word_edit' word.id %}" class="btn btn-primary me-2">
-                    <i class="fas fa-edit"></i> Редактировать
-                </a>
-                <a href="{% url 'dictionary:word_translation_edit' word.id %}" class="btn btn-success me-2">
-                    <i class="fas fa-language"></i> Переводы
-                </a>
-                <a href="{% url 'dictionary:multi_translate_word' word.id %}" class="btn btn-warning">
-                    <i class="fas fa-language"></i> Мультиперевод
-                </a>
-            {% endif %}
+<div class="word-detail-nyt">
+    <!-- Заголовок страницы -->
+    <div class="page-header" style="padding-top: 100px;">
+        <div class="container">
+            <h1>{{ word.word }}</h1>
+            <div class="subtitle">Многоязычный словарь</div>
         </div>
     </div>
-    
-    <div class="row">
-        <div class="col-lg-8">
-            <!-- Основная информация о слове -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h2 class="mb-0">{{ word.word }}</h2>
-                        <span class="badge bg-primary">{{ word.language.name }} ({{ word.language.code }})</span>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <h5 class="card-title">{{ word.word }}</h5>
-                    <p class="card-text">{{ word.meaning|safe }}</p>
-                    <p class="text-muted">
-                        <small>
-                            <i class="fas fa-language"></i> {{ word.language.name }} ({{ word.language.code }})
+
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="main-content">
+                    <!-- Основное определение -->
+                    <div class="word-definition">
+                        <h2 class="word-title">{{ word.word }}</h2>
+                        
+                        <div class="word-meta">
+                            <span class="language-badge">{{ word.language.name }} ({{ word.language.code }})</span>
                             {% if word.category %}
-                                | <i class="fas fa-tag"></i> {{ word.category.code }}
+                                <span class="category-badge ms-2">{{ word.category.code }}</span>
                             {% endif %}
-                        </small>
-                    </p>
-                    
-                    {% if word.pronunciation %}
-                        <h6>Произношение:</h6>
-                        <p class="text-muted">{{ word.pronunciation }}</p>
+                        </div>
+                        
+                        <div class="definition-block">
+                            <div class="definition-content tinymce-content">
+                                {{ word.meaning|safe }}
+                            </div>
+                        </div>
+                        
+                        <!-- Дополнительная информация -->
+                        {% if word.pronunciation or word.difficulty or tags %}
+                            <div class="additional-info">
+                                {% if word.pronunciation %}
+                                    <h6>Произношение</h6>
+                                    <p>{{ word.pronunciation }}</p>
+                                {% endif %}
+                                
+                                {% if word.difficulty %}
+                                    <h6>Сложность</h6>
+                                    <p>{{ word.get_difficulty_display }}</p>
+                                {% endif %}
+                                
+                                {% if tags %}
+                                    <h6>Теги</h6>
+                                    <p>
+                                        {% for tag_data in tags %}
+                                            <span class="category-badge me-1">{{ tag_data.name }}</span>
+                                        {% endfor %}
+                                    </p>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Переводы -->
+                    {% if translations %}
+                        <div class="translations-section">
+                            <h3>Переводы</h3>
+                            <div class="row">
+                                {% for translation in translations %}
+                                <div class="col-md-6 mb-3">
+                                    <div class="translation-card">
+                                        <div class="translation-header">
+                                            <h4>{{ translation.to_word.language.name }} ({{ translation.to_word.language.code }})</h4>
+                                        </div>
+                                        <div class="translation-body">
+                                            <div class="translation-word">{{ translation.to_word.word }}</div>
+                                            <div class="tinymce-content">
+                                                {{ translation.to_word.meaning|safe }}
+                                            </div>
+                                            {% if translation.note %}
+                                                <div class="translation-note">
+                                                    {{ translation.note }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
                     {% endif %}
-                    
-                    {% if word.category %}
-                        <h6>Категория:</h6>
-                        <span class="badge bg-secondary">{{ word.category.code }}</span>
-                    {% endif %}
-                    
-                    {% if word.difficulty %}
-                        <h6>Сложность:</h6>
-                        <span class="badge bg-info">{{ word.get_difficulty_display }}</span>
-                    {% endif %}
-                    
-                    {% if tags %}
-                        <h6>Теги:</h6>
-                        {% for tag_data in tags %}
-                            <span class="badge bg-light text-dark">{{ tag_data.name }}</span>
-                        {% endfor %}
+
+                    <!-- Примеры -->
+                    {% if examples %}
+                        <div class="examples-section">
+                            <h3>Примеры использования</h3>
+                            {% for example in examples %}
+                                <div class="example-item">
+                                    <p>{{ example.text }}</p>
+                                    {% if example.author %}
+                                        <div class="author">— {{ example.author.username }}</div>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        </div>
                     {% endif %}
                 </div>
             </div>
+        </div>
 
-            <!-- Переводы -->
-            {% if translations %}
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <h5>Переводы</h5>
+            <div class="col-lg-4">
+                <div class="sidebar">
+                    <!-- Информация -->
+                    <h4>Информация</h4>
+                    <div class="info-item">
+                        <div class="info-label">Добавлено</div>
+                        <div class="info-value">{{ word.created_at|date:"d.m.Y H:i" }}</div>
                     </div>
-                    <div class="card-body">
-                        <div class="row">
-                            {% for translation in translations %}
-                            <div class="col-md-6 mb-3">
-                                <div class="card h-100">
-                                    <div class="card-header">
-                                        <h6 class="mb-0">
-                                            <i class="fas fa-flag"></i> {{ translation.to_word.language.name }} ({{ translation.to_word.language.code }})
-                                        </h6>
-                                    </div>
-                                    <div class="card-body">
-                                        <h5 class="card-title">{{ translation.to_word.word }}</h5>
-                                        <p class="card-text">{{ translation.to_word.meaning|safe }}</p>
-                                        {% if translation.note %}
-                                            <p class="text-muted">
-                                                <small><i class="fas fa-info-circle"></i> {{ translation.note }}</small>
-                                            </p>
-                                        {% endif %}
-                                    </div>
-                                </div>
+                    {% if word.created_by %}
+                        <div class="info-item">
+                            <div class="info-label">Автор</div>
+                            <div class="info-value">{{ word.created_by.username }}</div>
+                        </div>
+                    {% endif %}
+                    <div class="info-item">
+                        <div class="info-label">Статус</div>
+                        <div class="info-value">
+                            <span class="category-badge">
+                                {{ word.get_status_display }}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <!-- Кнопки действий -->
+                    {% if user.is_staff %}
+                        <div class="info-item">
+                            <div class="info-label">Действия</div>
+                            <div class="info-value">
+                                <a href="{% url 'dictionary:word_edit' word.id %}" class="btn-nyt btn-sm d-block mb-2">
+                                    Редактировать
+                                </a>
+                                <a href="{% url 'dictionary:word_translation_edit' word.id %}" class="btn-nyt-outline btn-sm d-block mb-2">
+                                    Переводы
+                                </a>
+                                <a href="{% url 'dictionary:multi_translate_word' word.id %}" class="btn-nyt-outline btn-sm d-block">
+                                    Мультиперевод
+                                </a>
                             </div>
-                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    
+                    <!-- Навигация -->
+                    <div class="info-item">
+                        <div class="info-label">Навигация</div>
+                        <div class="info-value">
+                            <a href="{% url 'dictionary:home' %}" class="btn-nyt-outline btn-sm d-block">
+                                Назад к поиску
+                            </a>
                         </div>
                     </div>
                 </div>
-            {% endif %}
-
-            <!-- Примеры -->
-            {% if examples %}
-                <div class="card">
-                    <div class="card-header">
-                        <h5>Примеры использования</h5>
-                    </div>
-                    <div class="card-body">
-                        {% for example in examples %}
-                            <div class="mb-3">
-                                <p class="mb-1">{{ example.text }}</p>
-                                {% if example.author %}
-                                    <small class="text-muted">— {{ example.author.username }}</small>
-                                {% endif %}
-                            </div>
-                        {% endfor %}
-                    </div>
-                </div>
-            {% endif %}
-        </div>
-
-        <div class="col-lg-4">
-            <!-- Дополнительная информация -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h6>Информация</h6>
-                </div>
-                <div class="card-body">
-                    <p><strong>Добавлено:</strong> {{ word.created_at|date:"d.m.Y H:i" }}</p>
-                    {% if word.created_by %}
-                        <p><strong>Автор:</strong> {{ word.created_by.username }}</p>
-                    {% endif %}
-                    <p><strong>Статус:</strong> 
-                        <span class="badge bg-{% if word.status == 'approved' %}success{% elif word.status == 'pending' %}warning{% else %}danger{% endif %}">
-                            {{ word.get_status_display }}
-                        </span>
-                    </p>
-                </div>
             </div>
-
-            <!-- Навигация -->
-            <div class="card">
-                <div class="card-header">
-                    <h6>Навигация</h6>
-                </div>
-                <div class="card-body">
-                    <a href="{% url 'dictionary:home' %}" class="btn btn-outline-primary btn-sm">
-                        <i class="fas fa-arrow-left"></i> Назад к поиску
-                    </a>
-                    {% if user.is_staff %}
-                        <a href="{% url 'admin:dictionary_word_change' word.id %}" class="btn btn-outline-secondary btn-sm">
-                            <i class="fas fa-edit"></i> Редактировать
-                        </a>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
     </div>
+</div>
 </div>
 {% endblock %} 
