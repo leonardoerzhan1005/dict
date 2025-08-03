@@ -191,6 +191,60 @@
     border-top: 1px solid #e0e0e0;
 }
 
+/* TinyMCE контент в карточках переводов */
+.word-detail-nyt .translation-card .tinymce-content {
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.word-detail-nyt .translation-card .tinymce-content p {
+    margin-bottom: 0.5rem;
+}
+
+.word-detail-nyt .translation-card .tinymce-content p:last-child {
+    margin-bottom: 0;
+}
+
+.word-detail-nyt .translation-card .tinymce-content strong,
+.word-detail-nyt .translation-card .tinymce-content b {
+    font-weight: 700;
+    color: #1a1a1a;
+}
+
+.word-detail-nyt .translation-card .tinymce-content em,
+.word-detail-nyt .translation-card .tinymce-content i {
+    font-style: italic;
+}
+
+.word-detail-nyt .translation-card .tinymce-content ul,
+.word-detail-nyt .translation-card .tinymce-content ol {
+    margin: 0.5rem 0;
+    padding-left: 1.5rem;
+}
+
+.word-detail-nyt .translation-card .tinymce-content li {
+    margin-bottom: 0.25rem;
+}
+
+.word-detail-nyt .translation-card .tinymce-content h1,
+.word-detail-nyt .translation-card .tinymce-content h2,
+.word-detail-nyt .translation-card .tinymce-content h3,
+.word-detail-nyt .translation-card .tinymce-content h4,
+.word-detail-nyt .translation-card .tinymce-content h5,
+.word-detail-nyt .translation-card .tinymce-content h6 {
+    font-family: "Cheltenham", "Georgia", serif;
+    font-weight: 700;
+    margin: 0.5rem 0 0.25rem 0;
+    color: #1a1a1a;
+}
+
+.word-detail-nyt .translation-card .tinymce-content h1 { font-size: 1.1rem; }
+.word-detail-nyt .translation-card .tinymce-content h2 { font-size: 1rem; }
+.word-detail-nyt .translation-card .tinymce-content h3 { font-size: 0.95rem; }
+.word-detail-nyt .translation-card .tinymce-content h4 { font-size: 0.9rem; }
+.word-detail-nyt .translation-card .tinymce-content h5 { font-size: 0.85rem; }
+.word-detail-nyt .translation-card .tinymce-content h6 { font-size: 0.8rem; }
+
 /* Примеры */
 .word-detail-nyt .examples-section {
     margin-top: 3rem;

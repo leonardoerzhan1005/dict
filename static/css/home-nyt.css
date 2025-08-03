@@ -177,8 +177,8 @@
 /* Карточки слов */
 .home-nyt .word-card {
     background-color: #fff;
-    border: 1px solid #e0e0e0;
-    border-radius: 0;
+    border: 2px solid #e0e0e0;
+    border-radius: 1rem;
     box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     transition: all 0.3s ease;
     margin-bottom: 1.5rem;
@@ -189,6 +189,7 @@
     box-shadow: 0 6px 12px rgba(0,0,0,0.1);
     transform: translateY(-3px);
     border-color: #1a1a1a;
+    border: 3px solid #000000;
 }
 
 .home-nyt .word-card-header {
@@ -226,6 +227,60 @@
     color: #2c2c2c;
     margin-bottom: 1rem;
 }
+
+/* TinyMCE контент в карточках */
+.home-nyt .word-meaning.tinymce-content {
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.home-nyt .word-meaning.tinymce-content p {
+    margin-bottom: 0.5rem;
+}
+
+.home-nyt .word-meaning.tinymce-content p:last-child {
+    margin-bottom: 0;
+}
+
+.home-nyt .word-meaning.tinymce-content strong,
+.home-nyt .word-meaning.tinymce-content b {
+    font-weight: 700;
+    color: #1a1a1a;
+}
+
+.home-nyt .word-meaning.tinymce-content em,
+.home-nyt .word-meaning.tinymce-content i {
+    font-style: italic;
+}
+
+.home-nyt .word-meaning.tinymce-content ul,
+.home-nyt .word-meaning.tinymce-content ol {
+    margin: 0.5rem 0;
+    padding-left: 1.5rem;
+}
+
+.home-nyt .word-meaning.tinymce-content li {
+    margin-bottom: 0.25rem;
+}
+
+.home-nyt .word-meaning.tinymce-content h1,
+.home-nyt .word-meaning.tinymce-content h2,
+.home-nyt .word-meaning.tinymce-content h3,
+.home-nyt .word-meaning.tinymce-content h4,
+.home-nyt .word-meaning.tinymce-content h5,
+.home-nyt .word-meaning.tinymce-content h6 {
+    font-family: "Cheltenham", "Georgia", serif;
+    font-weight: 700;
+    margin: 0.5rem 0 0.25rem 0;
+    color: #1a1a1a;
+}
+
+.home-nyt .word-meaning.tinymce-content h1 { font-size: 1.1rem; }
+.home-nyt .word-meaning.tinymce-content h2 { font-size: 1rem; }
+.home-nyt .word-meaning.tinymce-content h3 { font-size: 0.95rem; }
+.home-nyt .word-meaning.tinymce-content h4 { font-size: 0.9rem; }
+.home-nyt .word-meaning.tinymce-content h5 { font-size: 0.85rem; }
+.home-nyt .word-meaning.tinymce-content h6 { font-size: 0.8rem; }
 
 .home-nyt .word-meta {
     display: flex;
@@ -304,8 +359,9 @@
 }
 
 .home-nyt .detail-button:hover {
-    background-color: #000;
-    color: #fff;
+    background-color: #ffffff;
+    color: #000000;
+    border: 2px solid #000000;
     text-decoration: none;
     transform: translateY(-1px);
 }

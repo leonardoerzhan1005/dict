@@ -16,8 +16,7 @@ build/
 local_settings.py
 
 
-media/
-staticfiles/
+ 
 
 # Virtual Environment
 venv/

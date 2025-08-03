@@ -1,4 +1,6 @@
 from django import template
+from django.utils.html import strip_tags
+import re
 
 register = template.Library()
 
@@ -61,4 +63,35 @@ def get_translation_percentage(obj, all_languages):
     if total_languages == 0:
         return 0
     
-    return round((translated_languages / total_languages) * 100) 
+    return round((translated_languages / total_languages) * 100)
+
+@register.filter
+def truncatewords_html(value, arg):
+    """
+    Обрезает HTML контент до указанного количества слов, сохраняя HTML теги
+    """
+    try:
+        length = int(arg)
+    except ValueError:
+        return value
+    
+    if not value:
+        return value
+    
+    # Сначала получаем чистый текст без HTML тегов
+    text_only = strip_tags(value)
+    
+    # Разбиваем на слова
+    words = text_only.split()
+    
+    if len(words) <= length:
+        return value
+    
+    # Обрезаем до нужного количества слов
+    truncated_words = words[:length]
+    truncated_text = ' '.join(truncated_words)
+    
+    # Добавляем многоточие
+    truncated_text += '...'
+    
+    return truncated_text 

@@ -1,4 +1,5 @@
 {% extends 'dictionary/base.html' %}
+{% load dictionary_extras %}
 
 {% block title %}Поиск слов - Многоязычный словарь{% endblock %}
 
@@ -128,8 +129,8 @@
                                 </div>
                                 <div class="word-card-body">
                                     <!-- Значение слова -->
-                                    <div class="word-meaning">
-                                        {{ word.meaning|truncatewords:15 }}
+                                    <div class="word-meaning tinymce-content">
+                                        {{ word.meaning|safe|truncatewords_html:15 }}
                                     </div>
                                     
                                     <!-- Категория и сложность -->
