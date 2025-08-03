@@ -1,0 +1,480 @@
+/* Стили для отображения контента TinyMCE в стиле New York Times */
+
+.tinymce-content {
+    font-family: "Charter", "Georgia", "Times New Roman", serif;
+    font-size: 18px;
+    line-height: 1.7;
+    color: #1a1a1a;
+    max-width: 100%;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Заголовки в стиле NYT */
+.tinymce-content h1,
+.tinymce-content h2,
+.tinymce-content h3,
+.tinymce-content h4,
+.tinymce-content h5,
+.tinymce-content h6 {
+    font-family: "Cheltenham", "Georgia", serif;
+    font-weight: 700;
+    line-height: 1.2;
+    color: #1a1a1a;
+    margin-top: 2em;
+    margin-bottom: 0.8em;
+    letter-spacing: -0.02em;
+}
+
+.tinymce-content h1 {
+    font-size: 2.5em;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 3px solid #1a1a1a;
+    padding-bottom: 0.4em;
+    margin-top: 0;
+}
+
+.tinymce-content h2 {
+    font-size: 2em;
+    font-weight: 800;
+    border-bottom: 2px solid #1a1a1a;
+    padding-bottom: 0.3em;
+}
+
+.tinymce-content h3 {
+    font-size: 1.6em;
+    font-weight: 700;
+    color: #2c2c2c;
+}
+
+.tinymce-content h4 {
+    font-size: 1.3em;
+    font-weight: 600;
+    color: #404040;
+}
+
+.tinymce-content h5 {
+    font-size: 1.1em;
+    font-weight: 600;
+    color: #555;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+.tinymce-content h6 {
+    font-size: 1em;
+    font-weight: 600;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+/* Параграфы в стиле NYT */
+.tinymce-content p {
+    margin-bottom: 1.2em;
+    text-align: left;
+    text-indent: 0;
+    hyphens: auto;
+    -webkit-hyphens: auto;
+    -moz-hyphens: auto;
+}
+
+.tinymce-content p:first-of-type {
+    font-size: 1.1em;
+    line-height: 1.8;
+    color: #2c2c2c;
+}
+
+.tinymce-content p:last-child {
+    margin-bottom: 0;
+}
+
+/* Списки в стиле NYT */
+.tinymce-content ul,
+.tinymce-content ol {
+    margin: 1.5em 0;
+    padding-left: 1.5em;
+}
+
+.tinymce-content ul {
+    list-style-type: none;
+}
+
+.tinymce-content ul li {
+    position: relative;
+    margin-bottom: 0.8em;
+    line-height: 1.6;
+}
+
+.tinymce-content ul li::before {
+    content: "•";
+    position: absolute;
+    left: -1.2em;
+    color: #1a1a1a;
+    font-weight: bold;
+}
+
+.tinymce-content ol {
+    list-style-type: decimal;
+    counter-reset: item;
+}
+
+.tinymce-content ol li {
+    margin-bottom: 0.8em;
+    line-height: 1.6;
+    counter-increment: item;
+}
+
+.tinymce-content ul ul,
+.tinymce-content ol ol {
+    margin: 0.8em 0;
+    padding-left: 1.5em;
+}
+
+.tinymce-content ul ul li::before {
+    content: "◦";
+    color: #666;
+}
+
+.tinymce-content ul ul ul li::before {
+    content: "▪";
+    color: #999;
+}
+
+/* Таблицы в стиле NYT */
+.tinymce-content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 2em 0;
+    background-color: #fff;
+    border: 1px solid #e0e0e0;
+    font-size: 0.9em;
+}
+
+.tinymce-content table th,
+.tinymce-content table td {
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 1px solid #e0e0e0;
+    vertical-align: top;
+}
+
+.tinymce-content table th {
+    background-color: #f8f8f8;
+    font-weight: 700;
+    color: #1a1a1a;
+    font-family: "Cheltenham", "Georgia", serif;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 0.85em;
+    border-bottom: 2px solid #1a1a1a;
+}
+
+.tinymce-content table tr:hover {
+    background-color: #fafafa;
+}
+
+.tinymce-content table tr:last-child td {
+    border-bottom: none;
+}
+
+.tinymce-content table caption {
+    font-style: italic;
+    color: #666;
+    margin-bottom: 0.5em;
+    text-align: left;
+}
+
+/* Изображения */
+.tinymce-content img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    margin: 1em 0;
+    display: block;
+}
+
+.tinymce-content img.align-left {
+    float: left;
+    margin-right: 1em;
+    margin-bottom: 0.5em;
+}
+
+.tinymce-content img.align-right {
+    float: right;
+    margin-left: 1em;
+    margin-bottom: 0.5em;
+}
+
+.tinymce-content img.align-center {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Ссылки в стиле NYT */
+.tinymce-content a {
+    color: #1a1a1a;
+    text-decoration: underline;
+    text-decoration-color: #1a1a1a;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 2px;
+    transition: all 0.2s ease;
+}
+
+.tinymce-content a:hover {
+    color: #000;
+    text-decoration-color: #000;
+    text-decoration-thickness: 2px;
+}
+
+.tinymce-content a:visited {
+    color: #666;
+    text-decoration-color: #666;
+}
+
+/* Форматирование текста */
+.tinymce-content strong,
+.tinymce-content b {
+    font-weight: 700;
+    color: #2c3e50;
+}
+
+.tinymce-content em,
+.tinymce-content i {
+    font-style: italic;
+    color: #7f8c8d;
+}
+
+.tinymce-content u {
+    text-decoration: underline;
+    text-decoration-color: #3498db;
+}
+
+.tinymce-content s,
+.tinymce-content strike {
+    text-decoration: line-through;
+    color: #95a5a6;
+}
+
+/* Цвета текста */
+.tinymce-content .text-primary { color: #3498db !important; }
+.tinymce-content .text-success { color: #27ae60 !important; }
+.tinymce-content .text-warning { color: #f39c12 !important; }
+.tinymce-content .text-danger { color: #e74c3c !important; }
+.tinymce-content .text-info { color: #17a2b8 !important; }
+.tinymce-content .text-muted { color: #6c757d !important; }
+
+/* Цвета фона */
+.tinymce-content .bg-primary { background-color: #3498db !important; color: white !important; }
+.tinymce-content .bg-success { background-color: #27ae60 !important; color: white !important; }
+.tinymce-content .bg-warning { background-color: #f39c12 !important; color: white !important; }
+.tinymce-content .bg-danger { background-color: #e74c3c !important; color: white !important; }
+.tinymce-content .bg-info { background-color: #17a2b8 !important; color: white !important; }
+.tinymce-content .bg-light { background-color: #f8f9fa !important; color: #495057 !important; }
+
+/* Цитаты в стиле NYT */
+.tinymce-content blockquote {
+    margin: 2em 0;
+    padding: 0 0 0 2em;
+    border-left: 3px solid #1a1a1a;
+    font-style: italic;
+    color: #2c2c2c;
+    font-size: 1.1em;
+    line-height: 1.6;
+}
+
+.tinymce-content blockquote p {
+    margin: 0 0 1em 0;
+}
+
+.tinymce-content blockquote p:last-child {
+    margin-bottom: 0;
+}
+
+.tinymce-content blockquote cite {
+    display: block;
+    margin-top: 1em;
+    font-size: 0.9em;
+    color: #666;
+    font-style: normal;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* Код */
+.tinymce-content code {
+    background-color: #f8f9fa;
+    padding: 0.2em 0.4em;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9em;
+    color: #e83e8c;
+}
+
+.tinymce-content pre {
+    background-color: #f8f9fa;
+    padding: 1em;
+    border-radius: 8px;
+    overflow-x: auto;
+    border: 1px solid #e9ecef;
+    margin: 1.5em 0;
+}
+
+.tinymce-content pre code {
+    background-color: transparent;
+    padding: 0;
+    color: #495057;
+}
+
+/* Разделители в стиле NYT */
+.tinymce-content hr {
+    border: none;
+    height: 1px;
+    background-color: #e0e0e0;
+    margin: 3em 0;
+}
+
+.tinymce-content hr::after {
+    content: "❦";
+    display: block;
+    text-align: center;
+    margin-top: 1em;
+    color: #999;
+    font-size: 1.2em;
+}
+
+/* Выравнивание */
+.tinymce-content .text-left { text-align: left !important; }
+.tinymce-content .text-center { text-align: center !important; }
+.tinymce-content .text-right { text-align: right !important; }
+.tinymce-content .text-justify { text-align: justify !important; }
+
+/* Отступы */
+.tinymce-content .mb-1 { margin-bottom: 0.25rem !important; }
+.tinymce-content .mb-2 { margin-bottom: 0.5rem !important; }
+.tinymce-content .mb-3 { margin-bottom: 1rem !important; }
+.tinymce-content .mb-4 { margin-bottom: 1.5rem !important; }
+.tinymce-content .mb-5 { margin-bottom: 3rem !important; }
+
+.tinymce-content .mt-1 { margin-top: 0.25rem !important; }
+.tinymce-content .mt-2 { margin-top: 0.5rem !important; }
+.tinymce-content .mt-3 { margin-top: 1rem !important; }
+.tinymce-content .mt-4 { margin-top: 1.5rem !important; }
+.tinymce-content .mt-5 { margin-top: 3rem !important; }
+
+/* Размеры шрифтов */
+.tinymce-content .fs-1 { font-size: 2.5rem !important; }
+.tinymce-content .fs-2 { font-size: 2rem !important; }
+.tinymce-content .fs-3 { font-size: 1.75rem !important; }
+.tinymce-content .fs-4 { font-size: 1.5rem !important; }
+.tinymce-content .fs-5 { font-size: 1.25rem !important; }
+.tinymce-content .fs-6 { font-size: 1rem !important; }
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .tinymce-content {
+        font-size: 14px;
+    }
+    
+    .tinymce-content h1 { font-size: 1.75em; }
+    .tinymce-content h2 { font-size: 1.5em; }
+    .tinymce-content h3 { font-size: 1.25em; }
+    
+    .tinymce-content table {
+        font-size: 14px;
+    }
+    
+    .tinymce-content table th,
+    .tinymce-content table td {
+        padding: 8px 12px;
+    }
+    
+    .tinymce-content ul,
+    .tinymce-content ol {
+        padding-left: 1.5em;
+    }
+}
+
+/* Анимации для интерактивных элементов */
+.tinymce-content a,
+.tinymce-content button {
+    transition: all 0.3s ease;
+}
+
+.tinymce-content img {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.tinymce-content img:hover {
+    transform: scale(1.02);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+}
+
+/* Специальные блоки в стиле NYT */
+.tinymce-content .legal-term {
+    background-color: #f8f8f8;
+    border: 1px solid #e0e0e0;
+    padding: 1.5em;
+    margin: 2em 0;
+    font-family: "Cheltenham", "Georgia", serif;
+    font-weight: 600;
+}
+
+.tinymce-content .legal-term::before {
+    content: "LEGAL TERM";
+    display: block;
+    font-size: 0.8em;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #666;
+    margin-bottom: 0.5em;
+}
+
+.tinymce-content .definition {
+    background-color: #f8f8f8;
+    border-left: 3px solid #1a1a1a;
+    padding: 1.5em;
+    margin: 2em 0;
+    font-style: italic;
+}
+
+.tinymce-content .definition::before {
+    content: "DEFINITION";
+    display: block;
+    font-size: 0.8em;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #666;
+    margin-bottom: 0.5em;
+    font-style: normal;
+}
+
+.tinymce-content .example {
+    background-color: #f8f8f8;
+    border-left: 3px solid #1a1a1a;
+    padding: 1.5em;
+    margin: 2em 0;
+    font-style: italic;
+}
+
+.tinymce-content .example::before {
+    content: "EXAMPLE";
+    display: block;
+    font-size: 0.8em;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #666;
+    margin-bottom: 0.5em;
+    font-style: normal;
+} 

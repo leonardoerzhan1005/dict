@@ -1,0 +1,362 @@
+/* Стили для страницы детального просмотра слова в стиле New York Times */
+
+.word-detail-nyt {
+    font-family: "Charter", "Georgia", "Times New Roman", serif;
+    background-color: #fff;
+    color: #1a1a1a;
+    line-height: 1.7;
+}
+
+/* Заголовок страницы */
+.word-detail-nyt .page-header {
+    border-bottom: 3px solid #1a1a1a;
+    padding-bottom: 1rem;
+    margin-bottom: 2rem;
+}
+
+.word-detail-nyt .page-header h1 {
+    font-family: "Cheltenham", "Georgia", serif;
+    font-size: 3rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #1a1a1a;
+    margin: 0;
+    line-height: 1.1;
+}
+
+.word-detail-nyt .page-header .subtitle {
+    font-family: "Cheltenham", "Georgia", serif;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #666;
+    margin-top: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+/* Основной контент */
+.word-detail-nyt .main-content {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 1rem;
+}
+
+.word-detail-nyt .word-definition {
+    margin-bottom: 3rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.word-detail-nyt .word-title {
+    font-family: "Cheltenham", "Georgia", serif;
+    font-size: 2.5rem;
+    font-weight: 900;
+    color: #1a1a1a;
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.word-detail-nyt .word-meta {
+    font-family: "Cheltenham", "Georgia", serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #666;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.word-detail-nyt .word-meta .language-badge {
+    background-color: #1a1a1a;
+    color: #fff;
+    padding: 0.3rem 0.8rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    border-radius: 0;
+}
+
+.word-detail-nyt .word-meta .category-badge {
+    background-color: #f8f8f8;
+    color: #1a1a1a;
+    border: 1px solid #e0e0e0;
+    padding: 0.3rem 0.8rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    border-radius: 0;
+}
+
+/* Блок с определением */
+.word-detail-nyt .definition-block {
+    margin-bottom: 3rem;
+}
+
+.word-detail-nyt .definition-block .definition-content {
+    font-size: 1.1rem;
+    line-height: 1.8;
+    color: #2c2c2c;
+    margin-bottom: 2rem;
+}
+
+/* Дополнительная информация */
+.word-detail-nyt .additional-info {
+    background-color: #f8f8f8;
+    padding: 2rem;
+    margin: 2rem 0;
+    border-left: 3px solid #1a1a1a;
+}
+
+.word-detail-nyt .additional-info h6 {
+    font-family: "Cheltenham", "Georgia", serif;
+    font-size: 0.9rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #666;
+    margin-bottom: 1rem;
+}
+
+.word-detail-nyt .additional-info p {
+    margin-bottom: 0.5rem;
+    font-size: 0.95rem;
+}
+
+/* Переводы */
+.word-detail-nyt .translations-section {
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid #e0e0e0;
+}
+
+.word-detail-nyt .translations-section h3 {
+    font-family: "Cheltenham", "Georgia", serif;
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: #1a1a1a;
+    margin-bottom: 2rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.word-detail-nyt .translation-card {
+    background-color: #fff;
+    border: 1px solid #e0e0e0;
+    margin-bottom: 2rem;
+    padding: 0;
+}
+
+.word-detail-nyt .translation-card .translation-header {
+    background-color: #f8f8f8;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.word-detail-nyt .translation-card .translation-header h4 {
+    font-family: "Cheltenham", "Georgia", serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.word-detail-nyt .translation-card .translation-body {
+    padding: 1.5rem;
+}
+
+.word-detail-nyt .translation-card .translation-word {
+    font-family: "Cheltenham", "Georgia", serif;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.word-detail-nyt .translation-card .translation-note {
+    font-style: italic;
+    color: #666;
+    font-size: 0.9rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e0e0e0;
+}
+
+/* Примеры */
+.word-detail-nyt .examples-section {
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid #e0e0e0;
+}
+
+.word-detail-nyt .examples-section h3 {
+    font-family: "Cheltenham", "Georgia", serif;
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: #1a1a1a;
+    margin-bottom: 2rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.word-detail-nyt .example-item {
+    background-color: #f8f8f8;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    border-left: 3px solid #1a1a1a;
+}
+
+.word-detail-nyt .example-item p {
+    font-size: 1rem;
+    line-height: 1.6;
+    color: #2c2c2c;
+    margin-bottom: 0.5rem;
+}
+
+.word-detail-nyt .example-item .author {
+    font-size: 0.8rem;
+    color: #666;
+    font-style: italic;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* Боковая панель */
+.word-detail-nyt .sidebar {
+    background-color: #f8f8f8;
+    padding: 2rem;
+    border-left: 3px solid #1a1a1a;
+}
+
+.word-detail-nyt .sidebar h4 {
+    font-family: "Cheltenham", "Georgia", serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.word-detail-nyt .sidebar .info-item {
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.word-detail-nyt .sidebar .info-item:last-child {
+    border-bottom: none;
+}
+
+.word-detail-nyt .sidebar .info-label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #666;
+    margin-bottom: 0.3rem;
+}
+
+.word-detail-nyt .sidebar .info-value {
+    font-size: 0.95rem;
+    color: #1a1a1a;
+}
+
+/* Кнопки */
+.word-detail-nyt .btn-nyt {
+    background-color: #1a1a1a;
+    color: #fff;
+    border: none;
+    padding: 0.8rem 1.5rem;
+    font-family: "Cheltenham", "Georgia", serif;
+    font-size: 0.9rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    border-radius: 0;
+    transition: all 0.2s ease;
+}
+
+.word-detail-nyt .btn-nyt:hover {
+    background-color: #000;
+    color: #fff;
+    transform: translateY(-1px);
+}
+
+.word-detail-nyt .btn-nyt-outline {
+    background-color: transparent;
+    color: #1a1a1a;
+    border: 2px solid #1a1a1a;
+    padding: 0.8rem 1.5rem;
+    font-family: "Cheltenham", "Georgia", serif;
+    font-size: 0.9rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    border-radius: 0;
+    transition: all 0.2s ease;
+}
+
+.word-detail-nyt .btn-nyt-outline:hover {
+    background-color: #1a1a1a;
+    color: #fff;
+}
+
+/* Разделители */
+.word-detail-nyt .section-divider {
+    border: none;
+    height: 1px;
+    background-color: #e0e0e0;
+    margin: 3rem 0;
+}
+
+.word-detail-nyt .section-divider::after {
+    content: "❦";
+    display: block;
+    text-align: center;
+    margin-top: 1rem;
+    color: #999;
+    font-size: 1.2em;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .word-detail-nyt .page-header h1 {
+        font-size: 2rem;
+    }
+    
+    .word-detail-nyt .word-title {
+        font-size: 2rem;
+    }
+    
+    .word-detail-nyt .main-content {
+        padding: 0 0.5rem;
+    }
+    
+    .word-detail-nyt .sidebar {
+        margin-top: 2rem;
+        border-left: none;
+        border-top: 3px solid #1a1a1a;
+    }
+}
+
+/* Анимации */
+.word-detail-nyt .translation-card,
+.word-detail-nyt .example-item {
+    transition: all 0.3s ease;
+}
+
+.word-detail-nyt .translation-card:hover,
+.word-detail-nyt .example-item:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
+} 

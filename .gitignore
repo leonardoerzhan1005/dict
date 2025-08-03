@@ -50,5 +50,4 @@ docker-compose.override.yml
 *.swo
 
 # Static and Collected Files
-static/
-media/
+

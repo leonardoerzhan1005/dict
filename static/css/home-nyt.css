@@ -1,0 +1,523 @@
+/* Стили для главной страницы в стиле New York Times */
+
+.home-nyt {
+    font-family: "Charter", "Georgia", "Times New Roman", serif;
+    background-color: #fff;
+    color: #1a1a1a;
+    line-height: 1.7;
+}
+
+/* Заголовок страницы */
+.home-nyt .page-header {
+    background-color: #f8f8f8;
+    border-bottom: 3px solid #1a1a1a;
+    padding: 2rem 0;
+    margin-bottom: 2rem;
+}
+
+.home-nyt .page-header h1 {
+    font-family: "Cheltenham", "Georgia", serif;
+    font-size: 2.5rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #1a1a1a;
+    margin: 0;
+    line-height: 1.1;
+    text-align: center;
+}
+
+.home-nyt .page-header .subtitle {
+    font-family: "Cheltenham", "Georgia", serif;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #666;
+    margin-top: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    text-align: center;
+}
+
+/* Поисковая форма */
+.home-nyt .search-section {
+    background-color: #fff;
+    padding: 2rem 0;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.home-nyt .search-container {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.home-nyt .search-form {
+    display: flex;
+    gap: 1rem;
+    align-items: stretch;
+}
+
+.home-nyt .search-input {
+    flex: 1;
+    border: 2px solid #e0e0e0;
+    border-radius: 0;
+    padding: 1rem 1.5rem;
+    font-family: "Charter", "Georgia", serif;
+    font-size: 1.1rem;
+    color: #1a1a1a;
+    background-color: #fff;
+    transition: all 0.3s ease;
+}
+
+.home-nyt .search-input:focus {
+    outline: none;
+    border-color: #1a1a1a;
+    box-shadow: 0 0 0 3px rgba(26, 26, 26, 0.1);
+}
+
+.home-nyt .search-button {
+    background-color: #1a1a1a;
+    color: #fff;
+    border: none;
+    padding: 1rem 2rem;
+    font-family: "Cheltenham", "Georgia", serif;
+    font-size: 0.9rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    border-radius: 0;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.home-nyt .search-button:hover {
+    background-color: #000;
+    transform: translateY(-1px);
+}
+
+/* Фильтры */
+.home-nyt .filters-section {
+    padding: 2rem 0;
+    background-color: #f8f8f8;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.home-nyt .filter-card {
+    background-color: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    transition: all 0.3s ease;
+}
+
+.home-nyt .filter-card:hover {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
+}
+
+.home-nyt .filter-header {
+    background-color: #1a1a1a;
+    color: #fff;
+    padding: 1rem 1.5rem;
+    font-family: "Cheltenham", "Georgia", serif;
+    font-size: 0.9rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.home-nyt .filter-select {
+    border: 1px solid #e0e0e0;
+    border-radius: 0;
+    padding: 0.8rem 1rem;
+    font-family: "Charter", "Georgia", serif;
+    font-size: 0.95rem;
+    color: #1a1a1a;
+    background-color: #fff;
+    width: 100%;
+    transition: border-color 0.3s ease;
+}
+
+.home-nyt .filter-select:focus {
+    outline: none;
+    border-color: #1a1a1a;
+}
+
+/* Результаты поиска */
+.home-nyt .results-section {
+    padding: 2rem 0;
+}
+
+.home-nyt .results-header {
+    background-color: #f8f8f8;
+    padding: 1.5rem 2rem;
+    border-left: 3px solid #1a1a1a;
+    margin-bottom: 2rem;
+}
+
+.home-nyt .results-title {
+    font-family: "Cheltenham", "Georgia", serif;
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #1a1a1a;
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.home-nyt .results-count {
+    font-family: "Charter", "Georgia", serif;
+    font-size: 0.9rem;
+    color: #666;
+    margin-top: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* Карточки слов */
+.home-nyt .word-card {
+    background-color: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    transition: all 0.3s ease;
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+}
+
+.home-nyt .word-card:hover {
+    box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+    transform: translateY(-3px);
+    border-color: #1a1a1a;
+}
+
+.home-nyt .word-card-header {
+    background-color: #f8f8f8;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.home-nyt .word-title {
+    font-family: "Cheltenham", "Georgia", serif;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin: 0;
+    line-height: 1.3;
+    text-decoration: none;
+    transition: color 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.home-nyt .word-title:hover {
+    color: #000;
+    text-decoration: none;
+}
+
+.home-nyt .word-card-body {
+    padding: 1.5rem;
+}
+
+.home-nyt .word-meaning {
+    font-family: "Charter", "Georgia", serif;
+    font-size: 1rem;
+    line-height: 1.6;
+    color: #2c2c2c;
+    margin-bottom: 1rem;
+}
+
+.home-nyt .word-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.home-nyt .language-badge {
+    background-color: #1a1a1a;
+    color: #fff;
+    font-family: "Cheltenham", "Georgia", serif;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 0.3rem 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    border-radius: 0;
+}
+
+.home-nyt .category-badge {
+    background-color: #f8f8f8;
+    color: #1a1a1a;
+    border: 1px solid #e0e0e0;
+    font-family: "Cheltenham", "Georgia", serif;
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 0.3rem 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    border-radius: 0;
+}
+
+.home-nyt .difficulty-badge {
+    background-color: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeaa7;
+    font-family: "Cheltenham", "Georgia", serif;
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 0.3rem 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    border-radius: 0;
+}
+
+.home-nyt .word-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 1rem;
+    border-top: 1px solid #e0e0e0;
+}
+
+.home-nyt .word-date {
+    font-family: "Charter", "Georgia", serif;
+    font-size: 0.8rem;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.home-nyt .detail-button {
+    background-color: #1a1a1a;
+    color: #fff;
+    border: none;
+    padding: 0.5rem 1rem;
+    font-family: "Cheltenham", "Georgia", serif;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    border-radius: 0;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.home-nyt .detail-button:hover {
+    background-color: #000;
+    color: #fff;
+    text-decoration: none;
+    transform: translateY(-1px);
+}
+
+/* Пагинация */
+.home-nyt .pagination-section {
+    padding: 2rem 0;
+    text-align: center;
+}
+
+.home-nyt .pagination {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.home-nyt .page-link {
+    background-color: #fff;
+    color: #1a1a1a;
+    border: 1px solid #e0e0e0;
+    padding: 0.8rem 1.2rem;
+    font-family: "Charter", "Georgia", serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-decoration: none;
+    border-radius: 0;
+    transition: all 0.3s ease;
+    min-width: 2.5rem;
+    text-align: center;
+}
+
+.home-nyt .page-link:hover {
+    background-color: #1a1a1a;
+    color: #fff;
+    border-color: #1a1a1a;
+    text-decoration: none;
+}
+
+.home-nyt .page-item.active .page-link {
+    background-color: #1a1a1a;
+    color: #fff;
+    border-color: #1a1a1a;
+}
+
+/* Пустое состояние */
+.home-nyt .empty-state {
+    background-color: #f8f8f8;
+    border: 2px dashed #e0e0e0;
+    border-radius: 0;
+    padding: 3rem 2rem;
+    text-align: center;
+    margin: 2rem 0;
+}
+
+.home-nyt .empty-icon {
+    font-size: 3rem;
+    color: #999;
+    margin-bottom: 1rem;
+}
+
+.home-nyt .empty-title {
+    font-family: "Cheltenham", "Georgia", serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.home-nyt .empty-text {
+    font-family: "Charter", "Georgia", serif;
+    font-size: 1rem;
+    color: #666;
+    margin-bottom: 2rem;
+    line-height: 1.6;
+}
+
+/* Индикатор загрузки */
+.home-nyt .loading-indicator {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(26, 26, 26, 0.9);
+    color: #fff;
+    padding: 1.5rem 2rem;
+    border-radius: 0;
+    z-index: 9999;
+    font-family: "Charter", "Georgia", serif;
+    font-size: 1rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .home-nyt .page-header h1 {
+        font-size: 2rem;
+    }
+    
+    .home-nyt .search-form {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .home-nyt .search-input,
+    .home-nyt .search-button {
+        width: 100%;
+    }
+    
+    .home-nyt .word-card {
+        margin-bottom: 1rem;
+    }
+    
+    .home-nyt .word-title {
+        font-size: 1.1rem;
+    }
+    
+    .home-nyt .word-meta {
+        flex-direction: column;
+        gap: 0.3rem;
+    }
+    
+    .home-nyt .word-footer {
+        flex-direction: column;
+        gap: 0.5rem;
+        align-items: flex-start;
+    }
+    
+    .home-nyt .pagination {
+        flex-wrap: wrap;
+        gap: 0.3rem;
+    }
+    
+    .home-nyt .page-link {
+        padding: 0.6rem 1rem;
+        font-size: 0.8rem;
+        min-width: 2rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .home-nyt .page-header {
+        padding: 1.5rem 0;
+    }
+    
+    .home-nyt .page-header h1 {
+        font-size: 1.8rem;
+    }
+    
+    .home-nyt .search-section {
+        padding: 1.5rem 0;
+    }
+    
+    .home-nyt .filters-section {
+        padding: 1.5rem 0;
+    }
+    
+    .home-nyt .results-section {
+        padding: 1.5rem 0;
+    }
+    
+    .home-nyt .word-card-header {
+        padding: 0.8rem 1rem;
+    }
+    
+    .home-nyt .word-card-body {
+        padding: 1rem;
+    }
+    
+    .home-nyt .results-header {
+        padding: 1rem 1.5rem;
+    }
+    
+    .home-nyt .results-title {
+        font-size: 1.2rem;
+    }
+}
+
+/* Анимации */
+.home-nyt .word-card {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: cardAppear 0.6s ease-out forwards;
+}
+
+.home-nyt .word-card:nth-child(1) { animation-delay: 0.1s; }
+.home-nyt .word-card:nth-child(2) { animation-delay: 0.2s; }
+.home-nyt .word-card:nth-child(3) { animation-delay: 0.3s; }
+.home-nyt .word-card:nth-child(4) { animation-delay: 0.4s; }
+.home-nyt .word-card:nth-child(5) { animation-delay: 0.5s; }
+.home-nyt .word-card:nth-child(6) { animation-delay: 0.6s; }
+
+@keyframes cardAppear {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Сохранение существующих стилей меню */
+.home-nyt .navbar {
+    /* Оставляем существующие стили меню */
+}
+
+.home-nyt .navbar-brand,
+.home-nyt .navbar-nav,
+.home-nyt .nav-link {
+    /* Сохраняем стили навигации */
+} 
