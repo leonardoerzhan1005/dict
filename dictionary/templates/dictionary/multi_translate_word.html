@@ -1,14 +1,30 @@
-{% extends "dictionary/base.html" %}
+{% extends 'dictionary/base.html' %}
 {% load dictionary_extras %}
 
 {% block title %}Мультиперевод - {{ word.word }}{% endblock %}
 
+{% block extra_head %}
+<script src="/static/tinymce/tinymce.min.js"></script>
+<script>
+// Проверяем загрузку TinyMCE
+window.addEventListener('load', function() {
+    console.log('Страница загружена');
+    if (typeof tinymce !== 'undefined') {
+        console.log('TinyMCE загружен успешно');
+    } else {
+        console.error('TinyMCE не загружен');
+    }
+});
+</script>
+{% endblock %}
+
+
 {% block content %}
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1><i class="fas fa-language"></i> Мультиперевод слова: <strong>{{ word.word }}</strong></h1>
+        <h1 class="multi-translate-title"><i class="fas fa-language"></i> Мультиперевод слова: <strong>{{ word.word }}</strong></h1>
         <div>
-            <a href="{% url 'dictionary:word_translations_dashboard' %}" class="btn btn-secondary">
+            <a href="{% url 'dictionary:word_translations_dashboard' %}" class="btn btn-multi-back">
                 <i class="fas fa-arrow-left"></i> Назад к списку
             </a>
         </div>
@@ -17,7 +33,7 @@
     <!-- Информация о слове -->
     <div class="row mb-4">
         <div class="col-md-6">
-            <div class="card">
+            <div class="card multi-card">
                 <div class="card-header">
                     <h6><i class="fas fa-info-circle"></i> Информация о слове</h6>
                 </div>
@@ -26,6 +42,7 @@
                     <p><strong>Значение:</strong> {{ word.meaning }}</p>
                     <p><strong>Язык:</strong> {{ word.language.name }} ({{ word.language.code }})</p>
                     <p><strong>Категория:</strong> 
+
                         {% if word.category %}
                             {{ word.category.code }}
                         {% else %}
@@ -36,14 +53,14 @@
             </div>
         </div>
         <div class="col-md-6">
-            <div class="card">
+            <div class="card multi-card">
                 <div class="card-header">
                     <h6><i class="fas fa-chart-bar"></i> Существующие переводы</h6>
                 </div>
                 <div class="card-body">
                     {% if existing_translations %}
                         {% for lang_code, translation in existing_translations.items %}
-                            <span class="badge bg-success me-2 mb-2">
+                            <span class="badge badge-existing-translation me-2 mb-2">
                                 {{ lang_code }}: {{ translation }}
                             </span>
                         {% endfor %}
@@ -59,14 +76,14 @@
     <form method="post" id="multi-translate-form">
         {% csrf_token %}
         
-        <div class="card">
+        <div class="card multi-card">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h5><i class="fas fa-language"></i> Перевод на несколько языков</h5>
                 <div class="btn-group" role="group">
-                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="selectAllLanguages()">
+                    <button type="button" class="btn btn-select-all-langs" onclick="selectAllLanguages()">
                         <i class="fas fa-check-double"></i> Выбрать все языки
                     </button>
-                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="deselectAllLanguages()">
+                    <button type="button" class="btn btn-deselect-all-langs" onclick="deselectAllLanguages()">
                         <i class="fas fa-times"></i> Снять выбор
                     </button>
                 </div>
@@ -74,12 +91,12 @@
             <div class="card-body">
                 <div class="row">
                     {% for language in available_languages %}
-                    <div class="col-md-6 mb-3">
-                        <div class="card border-primary">
+                    <div class="col-12 mb-3">
+                        <div class="card language-card">
                             <div class="card-header d-flex justify-content-between align-items-center">
                                 <h6 class="mb-0">
                                     <input type="checkbox" 
-                                           class="language-checkbox" 
+                                           class="language-checkbox multi-checkbox" 
                                            name="target_languages" 
                                            value="{{ language.code }}"
                                            id="lang_{{ language.code }}">
@@ -93,11 +110,11 @@
                                     <label for="translation_{{ language.code }}" class="form-label">
                                         Перевод на {{ language.name }}
                                     </label>
-                                    <input type="text" 
-                                           class="form-control translation-input" 
-                                           id="translation_{{ language.code }}"
-                                           placeholder="Введите перевод на {{ language.name }}"
-                                           data-language="{{ language.code }}">
+                                    <textarea class="form-control translation-input tinymce-editor" 
+                                              id="translation_{{ language.code }}"
+                                              placeholder="Введите перевод на {{ language.name }}"
+                                              data-language="{{ language.code }}"
+                                              rows="4"></textarea>
                                     <div class="form-text">Введите перевод для этого языка</div>
                                 </div>
                             </div>
@@ -109,10 +126,10 @@
                 <input type="hidden" name="translations_data" id="translations-data">
                 
                 <div class="mt-4">
-                    <button type="submit" class="btn btn-success">
+                    <button type="submit" class="btn btn-multi-save">
                         <i class="fas fa-save"></i> Сохранить все переводы
                     </button>
-                    <a href="{% url 'dictionary:word_translations_dashboard' %}" class="btn btn-secondary">
+                    <a href="{% url 'dictionary:word_translations_dashboard' %}" class="btn btn-multi-cancel">
                         <i class="fas fa-times"></i> Отмена
                     </a>
                 </div>
@@ -120,7 +137,7 @@
         </div>
     </form>
     {% else %}
-    <div class="card">
+    <div class="card multi-card">
         <div class="card-body text-center py-4">
             <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
             <h5 class="text-success">Слово уже переведено на все языки!</h5>
@@ -130,7 +147,500 @@
     {% endif %}
 </div>
 
+<style>
+/* Стили для страницы мультиперевода в темной теме */
+.multi-translate-title {
+    color: #fff;
+    font-family: "Charter", "Georgia", serif;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin: 0;
+}
+
+.multi-translate-title i {
+    margin-right: 0.5rem;
+    color: #fff;
+}
+
+.multi-translate-title strong {
+    color: #fff;
+    font-weight: 900;
+}
+
+/* Кнопка назад */
+.btn-multi-back {
+    background: linear-gradient(135deg, #6c757d 0%, #545b62 100%);
+    color: #fff;
+    border: 2px solid #6c757d;
+    border-radius: 0;
+    font-family: "Charter", "Georgia", serif;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 0.75rem 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.btn-multi-back:hover {
+    background: linear-gradient(135deg, #545b62 0%, #6c757d 100%);
+    color: #fff;
+    border-color: #545b62;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(108,117,125,0.4);
+}
+
+/* Карточки мультиперевода */
+.multi-card, .language-card {
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+    border: 1px solid #333;
+    border-radius: 0;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    color: #fff;
+    font-family: "Charter", "Georgia", serif;
+}
+
+.multi-card .card-header, .language-card .card-header {
+    background: linear-gradient(135deg, #000 0%, #1a1a1a 100%);
+    border-bottom: 2px solid #333;
+    color: #fff;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 1.5rem;
+}
+
+.multi-card .card-header h5, .multi-card .card-header h6, 
+.language-card .card-header h6 {
+    margin: 0;
+    font-weight: 900;
+    color: #fff;
+}
+
+.multi-card .card-header i, .language-card .card-header i {
+    margin-right: 0.5rem;
+    color: #fff;
+}
+
+.multi-card .card-body, .language-card .card-body {
+    padding: 2rem;
+    background-color: #1a1a1a;
+}
+
+/* Стили для форм */
+.form-label {
+    color: #fff;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.definition-content {
+    background-color: #2d2d2d !important;
+    border: 1px solid #444 !important;
+    border-radius: 0 !important;
+    color: #fff !important;
+    padding: 0.75rem 1rem !important;
+    font-size: 1rem !important;
+    font-family: "Charter", "Georgia", serif !important;
+    transition: all 0.3s ease !important;
+    min-height: 120px;
+    line-height: 1.6;
+}
+
+.definition-content:focus {
+    background-color: #333 !important;
+    border-color: #fff !important;
+    box-shadow: 0 0 0 3px rgba(255,255,255,0.1) !important;
+    outline: none !important;
+    color: #fff !important;
+}
+
+.tinymce-content {
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.tinymce-content p {
+    margin-bottom: 0.5rem;
+}
+
+.tinymce-content p:last-child {
+    margin-bottom: 0;
+}
+
+.tinymce-content strong,
+.tinymce-content b {
+    font-weight: 700;
+    color: #fff;
+}
+
+.tinymce-content em,
+.tinymce-content i {
+    font-style: italic;
+    color: #ffc107;
+}
+
+.tinymce-content u {
+    text-decoration: underline;
+    color: #17a2b8;
+}
+
+.tinymce-content ul,
+.tinymce-content ol {
+    margin: 0.5rem 0;
+    padding-left: 1.5rem;
+}
+
+.tinymce-content li {
+    margin-bottom: 0.25rem;
+}
+
+.tinymce-content h1,
+.tinymce-content h2,
+.tinymce-content h3,
+.tinymce-content h4,
+.tinymce-content h5,
+.tinymce-content h6 {
+    font-family: "Charter", "Georgia", serif;
+    font-weight: 700;
+    margin: 0.5rem 0 0.25rem 0;
+    color: #fff;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.tinymce-content h1 { font-size: 1.1rem; }
+.tinymce-content h2 { font-size: 1rem; }
+.tinymce-content h3 { font-size: 0.95rem; }
+.tinymce-content h4 { font-size: 0.9rem; }
+.tinymce-content h5 { font-size: 0.85rem; }
+.tinymce-content h6 { font-size: 0.8rem; }
+
+.translation-input {
+    background-color: #2d2d2d !important;
+    border: 1px solid #444 !important;
+    border-radius: 0 !important;
+    color: #fff !important;
+    padding: 0.75rem 1rem !important;
+    font-size: 1rem !important;
+    font-family: "Charter", "Georgia", serif !important;
+    transition: all 0.3s ease !important;
+    resize: vertical;
+}
+
+.translation-input::placeholder {
+    color: #888 !important;
+}
+
+.translation-input:focus {
+    background-color: #333 !important;
+    border-color: #fff !important;
+    box-shadow: 0 0 0 3px rgba(255,255,255,0.1) !important;
+    outline: none !important;
+    color: #fff !important;
+}
+
+.form-text {
+    color: #ccc;
+    font-size: 0.85rem;
+    font-style: italic;
+}
+
+/* Бейджи существующих переводов */
+.badge-existing-translation {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: #fff;
+    border-radius: 0;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 0.8rem;
+    padding: 0.5rem 0.8rem;
+}
+
+/* Кнопки выбора языков */
+.btn-select-all-langs {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    color: #fff;
+    border: 1px solid #007bff;
+    border-radius: 0;
+    font-family: "Charter", "Georgia", serif;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+    transition: all 0.3s ease;
+}
+
+.btn-select-all-langs:hover {
+    background: linear-gradient(135deg, #0056b3 0%, #007bff 100%);
+    color: #fff;
+    border-color: #0056b3;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,123,255,0.4);
+}
+
+.btn-deselect-all-langs {
+    background: linear-gradient(135deg, #6c757d 0%, #545b62 100%);
+    color: #fff;
+    border: 1px solid #6c757d;
+    border-radius: 0;
+    font-family: "Charter", "Georgia", serif;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+    transition: all 0.3s ease;
+}
+
+.btn-deselect-all-langs:hover {
+    background: linear-gradient(135deg, #545b62 0%, #6c757d 100%);
+    color: #fff;
+    border-color: #545b62;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(108,117,125,0.4);
+}
+
+/* Чекбоксы */
+.multi-checkbox {
+    background-color: #2d2d2d !important;
+    border: 1px solid #444 !important;
+    border-radius: 0 !important;
+    color: #fff !important;
+}
+
+.multi-checkbox:checked {
+    background-color: #007bff !important;
+    border-color: #007bff !important;
+}
+
+/* Кнопки сохранения */
+.btn-multi-save {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: #fff;
+    border: 2px solid #28a745;
+    border-radius: 0;
+    font-family: "Charter", "Georgia", serif;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 1rem 2rem;
+    transition: all 0.3s ease;
+}
+
+.btn-multi-save:hover {
+    background: linear-gradient(135deg, #20c997 0%, #28a745 100%);
+    color: #fff;
+    border-color: #20c997;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(40,167,69,0.4);
+}
+
+.btn-multi-cancel {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    color: #fff;
+    border: 2px solid #dc3545;
+    border-radius: 0;
+    font-family: "Charter", "Georgia", serif;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 1rem 2rem;
+    transition: all 0.3s ease;
+}
+
+.btn-multi-cancel:hover {
+    background: linear-gradient(135deg, #c82333 0%, #dc3545 100%);
+    color: #fff;
+    border-color: #c82333;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(220,53,69,0.4);
+}
+
+.btn i {
+    margin-right: 0.5rem;
+}
+
+/* TinyMCE редактор */
+
+
+/* Анимация появления */
+.multi-card, .language-card {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+.multi-card:nth-child(1) { animation-delay: 0.1s; }
+.multi-card:nth-child(2) { animation-delay: 0.2s; }
+.language-card:nth-child(odd) { animation-delay: 0.3s; }
+.language-card:nth-child(even) { animation-delay: 0.4s; }
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .multi-card .card-body, .language-card .card-body {
+        padding: 1.5rem;
+    }
+    
+    .multi-card .card-header, .language-card .card-header {
+        padding: 1rem;
+    }
+    
+    .multi-translate-title {
+        font-size: 1.5rem;
+    }
+    
+    .btn {
+        padding: 0.8rem 1.5rem;
+        font-size: 0.9rem;
+    }
+}
+
+/* Дополнительные эффекты */
+.btn:active {
+    transform: translateY(0);
+}
+
+.text-muted {
+    color: #888 !important;
+}
+
+/* Стили для карточек языков */
+.language-card {
+    transition: all 0.3s ease;
+}
+
+.language-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.6);
+}
+
+.language-card .card-header label {
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.language-card .card-header label:hover {
+    color: #007bff;
+}
+</style>
+
 <script>
+// Инициализация TinyMCE для всех редакторов
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM загружен, инициализируем TinyMCE...');
+    
+    // Проверяем, что TinyMCE загружен
+    if (typeof tinymce === 'undefined') {
+        console.error('TinyMCE не загружен!');
+        return;
+    }
+    
+    console.log('TinyMCE доступен:', typeof tinymce);
+    
+    const editors = document.querySelectorAll('.tinymce-editor');
+    console.log('Найдено редакторов:', editors.length);
+    
+    editors.forEach(function(editor) {
+        console.log('Инициализируем редактор:', editor.id);
+        tinymce.init({
+            selector: '#' + editor.id,
+            height: 300,
+            width: '100%',
+            plugins: 'save link image table paste lists advlist wordcount charmap nonbreaking anchor pagebreak insertdatetime media directionality emoticons template paste textpattern codesample advlist autolink lists link image charmap preview anchor pagebreak insertdatetime media table code help wordcount',
+            toolbar1: 'save | formatselect | bold italic underline strikethrough | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image media table | forecolor backcolor emoticons | fontselect fontsizeselect',
+            toolbar2: 'table | charmap | pagebreak | codesample | ltr rtl | spellchecker | advlist | autolink | lists charmap | print preview | anchor | insertdatetime | media | help',
+            toolbar3: 'undo redo | cut copy paste | searchreplace | visualblocks visualchars | fullscreen | insertfile image media template link anchor | ltr rtl',
+            contextmenu: 'formats | link image table',
+            menubar: true,
+            statusbar: true,
+            language: 'ru',
+            content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; font-size: 14px; line-height: 1.6; }',
+            extended_valid_elements: 'img[src|alt|title|width|height|style],a[href|target|title],table[width|height|border|cellpadding|cellspacing|style],tr[style],td[width|height|style|colspan|rowspan],th[width|height|style|colspan|rowspan]',
+            images_upload_url: '/tinymce/upload/image/',
+            file_picker_types: 'image file',
+            images_reuse_filename: true,
+            images_upload_base_path: '/media/',
+            automatic_uploads: true,
+            images_upload_credentials: true,
+            paste_data_images: true,
+            browser_spellcheck: true,
+            verify_html: false,
+            entity_encoding: 'raw',
+            relative_urls: false,
+            remove_script_host: false,
+            convert_urls: false,
+            setup: function(editor) {
+                console.log('TinyMCE инициализирован для:', editor.id);
+                
+                // Подавляем предупреждения о политике разрешений
+                if (window.console && window.console.warn) {
+                    var originalWarn = console.warn;
+                    console.warn = function() {
+                        if (arguments[0] && typeof arguments[0] === 'string' && 
+                            arguments[0].includes('Permissions policy violation')) {
+                            return;
+                        }
+                        return originalWarn.apply(console, arguments);
+                    };
+                }
+                
+                // Функция для получения CSRF токена
+                function getCookie(name) {
+                    var cookieValue = null;
+                    if (document.cookie && document.cookie !== '') {
+                        var cookies = document.cookie.split(';');
+                        for (var i = 0; i < cookies.length; i++) {
+                            var cookie = cookies[i].trim();
+                            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                                break;
+                            }
+                        }
+                    }
+                    return cookieValue;
+                }
+                
+                // Добавляем обработчик для отладки
+                editor.on('change', function() {
+                    console.log('Контент изменен в:', editor.id);
+                    const langCode = editor.getElement().dataset.language;
+                    const checkbox = document.querySelector(`#lang_${langCode}`);
+                    
+                    if (editor.getContent().trim()) {
+                        checkbox.checked = true;
+                    }
+                });
+                
+                // Добавляем обработчик для загрузки изображений
+                editor.on('BeforeSetContent', function(e) {
+                    console.log('Устанавливаем контент в:', editor.id);
+                });
+                
+                editor.on('SetContent', function(e) {
+                    console.log('Контент установлен в:', editor.id);
+                });
+            }
+        });
+    });
+});
+
 // Выбор всех языков
 function selectAllLanguages() {
     document.querySelectorAll('.language-checkbox').forEach(checkbox => {
@@ -152,10 +662,10 @@ document.getElementById('multi-translate-form').addEventListener('submit', funct
     
     selectedLanguages.forEach(checkbox => {
         const langCode = checkbox.value;
-        const translationInput = document.querySelector(`#translation_${langCode}`);
+        const editor = tinymce.get(`translation_${langCode}`);
         
-        if (translationInput.value.trim()) {
-            translations[langCode] = translationInput.value.trim();
+        if (editor && editor.getContent().trim()) {
+            translations[langCode] = editor.getContent().trim();
         }
     });
     
@@ -167,26 +677,15 @@ document.getElementById('multi-translate-form').addEventListener('submit', funct
     }
 });
 
-// Автоматический выбор языка при вводе перевода
-document.querySelectorAll('.translation-input').forEach(input => {
-    input.addEventListener('input', function() {
-        const langCode = this.dataset.language;
-        const checkbox = document.querySelector(`#lang_${langCode}`);
-        
-        if (this.value.trim()) {
-            checkbox.checked = true;
-        }
-    });
-});
-
 // Копирование значения с исходного слова
 function copyOriginalMeaning() {
-    const originalMeaning = '{{ word.meaning }}';
+    const originalMeaning = `{{ word.meaning|escapejs }}`;
     if (originalMeaning) {
-        document.querySelectorAll('.translation-input').forEach(input => {
-            if (!input.value.trim()) {
-                input.value = originalMeaning;
-                const langCode = input.dataset.language;
+        document.querySelectorAll('.tinymce-editor').forEach(textarea => {
+            const editor = tinymce.get(textarea.id);
+            if (editor && !editor.getContent().trim()) {
+                editor.setContent(originalMeaning);
+                const langCode = textarea.dataset.language;
                 const checkbox = document.querySelector(`#lang_${langCode}`);
                 checkbox.checked = true;
             }
@@ -194,18 +693,4 @@ function copyOriginalMeaning() {
     }
 }
 </script>
-
-<style>
-.card-header h6 {
-    margin: 0;
-    color: #495057;
-}
-.form-group label {
-    font-weight: 500;
-    color: #495057;
-}
-.border-primary {
-    border-color: #0d6efd !important;
-}
-</style>
 {% endblock %} 

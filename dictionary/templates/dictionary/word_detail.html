@@ -134,13 +134,13 @@
                         <div class="info-item">
                             <div class="info-label">Действия</div>
                             <div class="info-value">
-                                <a href="{% url 'dictionary:word_edit' word.id %}" class="btn-nyt btn-sm d-block mb-2">
+                                <a href="{% url 'dictionary:word_edit' word.slug %}" class="btn-nyt btn-sm d-block mb-2">
                                     Редактировать
                                 </a>
-                                <a href="{% url 'dictionary:word_translation_edit' word.id %}" class="btn-nyt-outline btn-sm d-block mb-2">
+                                <a href="{% url 'dictionary:word_translation_edit' word.slug %}" class="btn-nyt-outline btn-sm d-block mb-2">
                                     Переводы
                                 </a>
-                                <a href="{% url 'dictionary:multi_translate_word' word.id %}" class="btn-nyt-outline btn-sm d-block">
+                                <a href="{% url 'dictionary:multi_translate_word' word.slug %}" class="btn-nyt-outline btn-sm d-block">
                                     Мультиперевод
                                 </a>
                             </div>

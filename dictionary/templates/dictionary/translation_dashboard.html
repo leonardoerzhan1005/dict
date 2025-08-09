@@ -6,12 +6,12 @@
 {% block content %}
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1><i class="fas fa-language"></i> Управление переводами</h1>
+        <h1 class="dashboard-title"><i class="fas fa-language"></i> Управление переводами</h1>
         <div>
-            <a href="{% url 'dictionary:word_translations_dashboard' %}" class="btn btn-primary me-2">
+            <a href="{% url 'dictionary:word_translations_dashboard' %}" class="btn btn-dashboard-primary me-2">
                 <i class="fas fa-book"></i> Переводы слов
             </a>
-            <a href="{% url 'dictionary:translation_progress' %}" class="btn btn-info">
+            <a href="{% url 'dictionary:translation_progress' %}" class="btn btn-dashboard-info">
                 <i class="fas fa-chart-line"></i> Прогресс переводов
             </a>
         </div>
@@ -20,7 +20,7 @@
     <!-- Общая статистика -->
     <div class="row mb-4">
         <div class="col-md-3">
-            <div class="card bg-primary text-white">
+            <div class="card stats-card stats-primary">
                 <div class="card-body text-center">
                     <h3>{{ total_categories }}</h3>
                     <p class="mb-0">Всего категорий</p>
@@ -28,7 +28,7 @@
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card bg-success text-white">
+            <div class="card stats-card stats-success">
                 <div class="card-body text-center">
                     <h3>{{ fully_translated_categories }}</h3>
                     <p class="mb-0">Полностью переведено</p>
@@ -36,7 +36,7 @@
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card bg-warning text-white">
+            <div class="card stats-card stats-warning">
                 <div class="card-body text-center">
                     <h3>{{ untranslated_categories }}</h3>
                     <p class="mb-0">Без переводов</p>
@@ -44,7 +44,7 @@
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card bg-info text-white">
+            <div class="card stats-card stats-info">
                 <div class="card-body text-center">
                     <h3>{{ total_languages }}</h3>
                     <p class="mb-0">Языков</p>
@@ -54,7 +54,7 @@
     </div>
 
     <!-- Быстрые действия -->
-    <div class="card mb-4">
+    <div class="card dashboard-card mb-4">
         <div class="card-header">
             <h5><i class="fas fa-bolt"></i> Быстрые действия</h5>
         </div>
@@ -64,7 +64,7 @@
                     <form method="post" action="{% url 'dictionary:bulk_add_missing_translations' %}" style="display: inline;">
                         {% csrf_token %}
                         <input type="hidden" name="type" value="categories">
-                        <button type="submit" class="btn btn-success me-2">
+                        <button type="submit" class="btn btn-dashboard-success me-2">
                             <i class="fas fa-plus"></i> Добавить все недостающие переводы категорий
                         </button>
                     </form>
@@ -73,7 +73,7 @@
                     <form method="post" action="{% url 'dictionary:bulk_add_missing_translations' %}" style="display: inline;">
                         {% csrf_token %}
                         <input type="hidden" name="type" value="tags">
-                        <button type="submit" class="btn btn-info">
+                        <button type="submit" class="btn btn-dashboard-info">
                             <i class="fas fa-plus"></i> Добавить все недостающие переводы тегов
                         </button>
                     </form>
@@ -83,16 +83,16 @@
     </div>
 
     <!-- Руководство по мультипереводу -->
-    <div class="card mb-4">
+    <div class="card dashboard-card mb-4">
         <div class="card-header">
             <h5><i class="fas fa-question-circle"></i> Как использовать мультиперевод</h5>
         </div>
         <div class="card-body">
             <div class="row">
                 <div class="col-md-6">
-                    <h6><i class="fas fa-language"></i> Мультиперевод одного слова:</h6>
-                    <ol>
-                        <li>Перейдите в <a href="{% url 'dictionary:word_translations_dashboard' %}">Управление переводами слов</a></li>
+                    <h6 class="guide-title"><i class="fas fa-language"></i> Мультиперевод одного слова:</h6>
+                    <ol class="guide-list">
+                        <li>Перейдите в <a href="{% url 'dictionary:word_translations_dashboard' %}" class="guide-link">Управление переводами слов</a></li>
                         <li>Найдите нужное слово</li>
                         <li>Нажмите кнопку <strong>"Мультиперевод"</strong></li>
                         <li>Выберите языки для перевода</li>
@@ -101,9 +101,9 @@
                     </ol>
                 </div>
                 <div class="col-md-6">
-                    <h6><i class="fas fa-list"></i> Массовый мультиперевод:</h6>
-                    <ol>
-                        <li>Перейдите в <a href="{% url 'dictionary:bulk_multi_translate' %}">Массовый мультиперевод</a></li>
+                    <h6 class="guide-title"><i class="fas fa-list"></i> Массовый мультиперевод:</h6>
+                    <ol class="guide-list">
+                        <li>Перейдите в <a href="{% url 'dictionary:bulk_multi_translate' %}" class="guide-link">Массовый мультиперевод</a></li>
                         <li>Выберите исходный язык и категорию</li>
                         <li>Выберите целевые языки для перевода</li>
                         <li>Выберите слова для перевода</li>
@@ -113,14 +113,14 @@
                 </div>
             </div>
             
-            <hr>
+            <hr class="guide-divider">
             
             <div class="row">
                 <div class="col-12">
-                    <h6><i class="fas fa-edit"></i> Редактор значений:</h6>
-                    <div class="alert alert-info">
+                    <h6 class="guide-title"><i class="fas fa-edit"></i> Редактор значений:</h6>
+                    <div class="alert alert-dashboard-info">
                         <p><strong>Рекомендации по форматированию:</strong></p>
-                        <ul class="mb-0">
+                        <ul class="mb-0 guide-tips">
                             <li>Используйте <strong>жирный текст</strong> для выделения важных терминов</li>
                             <li>Используйте <em>курсив</em> для иностранных слов или примеров</li>
                             <li>Создавайте списки для перечисления значений или примеров</li>
@@ -133,19 +133,19 @@
     </div>
 
     <!-- Категории -->
-    <div class="card mb-4">
+    <div class="card dashboard-card mb-4">
         <div class="card-header d-flex justify-content-between align-items-center">
             <h5><i class="fas fa-tags"></i> Категории</h5>
             <div class="btn-group" role="group">
-                <button type="button" class="btn btn-outline-primary btn-sm" onclick="filterByStatus('all')">Все</button>
-                <button type="button" class="btn btn-outline-success btn-sm" onclick="filterByStatus('complete')">Полные</button>
-                <button type="button" class="btn btn-outline-warning btn-sm" onclick="filterByStatus('partial')">Частичные</button>
-                <button type="button" class="btn btn-outline-danger btn-sm" onclick="filterByStatus('empty')">Пустые</button>
+                <button type="button" class="btn btn-filter btn-filter-all" onclick="filterByStatus('all')">Все</button>
+                <button type="button" class="btn btn-filter btn-filter-complete" onclick="filterByStatus('complete')">Полные</button>
+                <button type="button" class="btn btn-filter btn-filter-partial" onclick="filterByStatus('partial')">Частичные</button>
+                <button type="button" class="btn btn-filter btn-filter-empty" onclick="filterByStatus('empty')">Пустые</button>
             </div>
         </div>
         <div class="card-body">
             <div class="table-responsive">
-                <table class="table table-striped" id="categories-table">
+                <table class="table table-dashboard" id="categories-table">
                     <thead>
                         <tr>
                             <th>Код</th>
@@ -160,15 +160,15 @@
                             <td><strong>{{ category.code }}</strong></td>
                             <td>
                                 {% for translation in category.translations.all %}
-                                    <span class="badge bg-primary">{{ translation.language.code }}: {{ translation.name }}</span>
+                                    <span class="badge badge-translation">{{ translation.language.code }}: {{ translation.name }}</span>
                                 {% empty %}
                                     <span class="text-muted">Нет переводов</span>
                                 {% endfor %}
                             </td>
                             <td>
                                 {% with stats=category_stats|get_item:category.id %}
-                                    <div class="progress" style="height: 20px;">
-                                        <div class="progress-bar {% if stats.percentage == 100 %}bg-success{% elif stats.percentage == 0 %}bg-danger{% else %}bg-warning{% endif %}" 
+                                    <div class="progress progress-dashboard" style="height: 20px;">
+                                        <div class="progress-bar progress-bar-dashboard {% if stats.percentage == 100 %}progress-success{% elif stats.percentage == 0 %}progress-danger{% else %}progress-warning{% endif %}" 
                                              role="progressbar" 
                                              style="width: {{ stats.percentage }}%;" 
                                              aria-valuenow="{{ stats.percentage }}" 
@@ -182,10 +182,10 @@
                             <td>
                                 <div class="btn-group" role="group">
                                     <a href="{% url 'dictionary:category_translations_edit' category.id %}" 
-                                       class="btn btn-sm btn-primary">
+                                       class="btn btn-table-edit">
                                         <i class="fas fa-edit"></i> Редактировать
                                     </a>
-                                    <button class="btn btn-sm btn-success add-missing-btn" 
+                                    <button class="btn btn-table-add add-missing-btn" 
                                             data-type="category" 
                                             data-id="{{ category.id }}">
                                         <i class="fas fa-plus"></i> Добавить недостающие
@@ -201,19 +201,19 @@
     </div>
 
     <!-- Теги -->
-    <div class="card mb-4">
+    <div class="card dashboard-card mb-4">
         <div class="card-header d-flex justify-content-between align-items-center">
             <h5><i class="fas fa-tag"></i> Теги</h5>
             <div class="btn-group" role="group">
-                <button type="button" class="btn btn-outline-primary btn-sm" onclick="filterTagsByStatus('all')">Все</button>
-                <button type="button" class="btn btn-outline-success btn-sm" onclick="filterTagsByStatus('complete')">Полные</button>
-                <button type="button" class="btn btn-outline-warning btn-sm" onclick="filterTagsByStatus('partial')">Частичные</button>
-                <button type="button" class="btn btn-outline-danger btn-sm" onclick="filterTagsByStatus('empty')">Пустые</button>
+                <button type="button" class="btn btn-filter btn-filter-all" onclick="filterTagsByStatus('all')">Все</button>
+                <button type="button" class="btn btn-filter btn-filter-complete" onclick="filterTagsByStatus('complete')">Полные</button>
+                <button type="button" class="btn btn-filter btn-filter-partial" onclick="filterTagsByStatus('partial')">Частичные</button>
+                <button type="button" class="btn btn-filter btn-filter-empty" onclick="filterTagsByStatus('empty')">Пустые</button>
             </div>
         </div>
         <div class="card-body">
             <div class="table-responsive">
-                <table class="table table-striped" id="tags-table">
+                <table class="table table-dashboard" id="tags-table">
                     <thead>
                         <tr>
                             <th>Код</th>
@@ -228,15 +228,15 @@
                             <td><strong>{{ tag.code }}</strong></td>
                             <td>
                                 {% for translation in tag.translations.all %}
-                                    <span class="badge bg-info">{{ translation.language.code }}: {{ translation.name }}</span>
+                                    <span class="badge badge-translation">{{ translation.language.code }}: {{ translation.name }}</span>
                                 {% empty %}
                                     <span class="text-muted">Нет переводов</span>
                                 {% endfor %}
                             </td>
                             <td>
                                 {% with stats=tag_stats|get_item:tag.id %}
-                                    <div class="progress" style="height: 20px;">
-                                        <div class="progress-bar {% if stats.percentage == 100 %}bg-success{% elif stats.percentage == 0 %}bg-danger{% else %}bg-warning{% endif %}" 
+                                    <div class="progress progress-dashboard" style="height: 20px;">
+                                        <div class="progress-bar progress-bar-dashboard {% if stats.percentage == 100 %}progress-success{% elif stats.percentage == 0 %}progress-danger{% else %}progress-warning{% endif %}" 
                                              role="progressbar" 
                                              style="width: {{ stats.percentage }}%;" 
                                              aria-valuenow="{{ stats.percentage }}" 
@@ -250,10 +250,10 @@
                             <td>
                                 <div class="btn-group" role="group">
                                     <a href="{% url 'dictionary:tag_translations_edit' tag.id %}" 
-                                       class="btn btn-sm btn-primary">
+                                       class="btn btn-table-edit">
                                         <i class="fas fa-edit"></i> Редактировать
                                     </a>
-                                    <button class="btn btn-sm btn-success add-missing-btn" 
+                                    <button class="btn btn-table-add add-missing-btn" 
                                             data-type="tag" 
                                             data-id="{{ tag.id }}">
                                         <i class="fas fa-plus"></i> Добавить недостающие
@@ -269,18 +269,462 @@
     </div>
 
     <!-- Переводы интерфейса -->
-    <div class="card">
+    <div class="card dashboard-card">
         <div class="card-header">
             <h5><i class="fas fa-cog"></i> Переводы интерфейса</h5>
         </div>
         <div class="card-body">
             <a href="{% url 'dictionary:interface_translations_edit' %}" 
-               class="btn btn-primary">
+               class="btn btn-dashboard-primary">
                 <i class="fas fa-edit"></i> Редактировать переводы интерфейса
             </a>
         </div>
     </div>
 </div>
+
+<style>
+/* Стили для страницы управления переводами в темной теме */
+.dashboard-title {
+    color: #fff;
+    font-family: "Charter", "Georgia", serif;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin: 0;
+}
+
+.dashboard-title i {
+    margin-right: 0.5rem;
+    color: #fff;
+}
+
+/* Карточки статистики */
+.stats-card {
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+    border: 1px solid #333;
+    border-radius: 0;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    color: #fff;
+    font-family: "Charter", "Georgia", serif;
+    transition: all 0.3s ease;
+}
+
+.stats-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.6);
+}
+
+.stats-primary {
+    border-left: 4px solid #007bff;
+}
+
+.stats-success {
+    border-left: 4px solid #28a745;
+}
+
+.stats-warning {
+    border-left: 4px solid #ffc107;
+}
+
+.stats-info {
+    border-left: 4px solid #17a2b8;
+}
+
+.stats-card h3 {
+    font-size: 2.5rem;
+    font-weight: 900;
+    margin-bottom: 0.5rem;
+    color: #fff;
+}
+
+.stats-card p {
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #ccc;
+    margin: 0;
+}
+
+/* Карточки дашборда */
+.dashboard-card {
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+    border: 1px solid #333;
+    border-radius: 0;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    color: #fff;
+    font-family: "Charter", "Georgia", serif;
+}
+
+.dashboard-card .card-header {
+    background: linear-gradient(135deg, #000 0%, #1a1a1a 100%);
+    border-bottom: 2px solid #333;
+    color: #fff;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 1.5rem;
+}
+
+.dashboard-card .card-header h5 {
+    margin: 0;
+    font-weight: 900;
+    color: #fff;
+}
+
+.dashboard-card .card-header i {
+    margin-right: 0.5rem;
+    color: #fff;
+}
+
+.dashboard-card .card-body {
+    padding: 2rem;
+    background-color: #1a1a1a;
+}
+
+/* Кнопки дашборда */
+.btn-dashboard-primary {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    color: #fff;
+    border: 2px solid #007bff;
+    border-radius: 0;
+    font-family: "Charter", "Georgia", serif;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 0.75rem 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.btn-dashboard-primary:hover {
+    background: linear-gradient(135deg, #0056b3 0%, #007bff 100%);
+    color: #fff;
+    border-color: #0056b3;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,123,255,0.4);
+}
+
+.btn-dashboard-info {
+    background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+    color: #fff;
+    border: 2px solid #17a2b8;
+    border-radius: 0;
+    font-family: "Charter", "Georgia", serif;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 0.75rem 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.btn-dashboard-info:hover {
+    background: linear-gradient(135deg, #138496 0%, #17a2b8 100%);
+    color: #fff;
+    border-color: #138496;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(23,162,184,0.4);
+}
+
+.btn-dashboard-success {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: #fff;
+    border: 2px solid #28a745;
+    border-radius: 0;
+    font-family: "Charter", "Georgia", serif;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 0.75rem 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.btn-dashboard-success:hover {
+    background: linear-gradient(135deg, #20c997 0%, #28a745 100%);
+    color: #fff;
+    border-color: #20c997;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(40,167,69,0.4);
+}
+
+/* Руководство */
+.guide-title {
+    color: #fff;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-size: 1rem;
+    margin-bottom: 1rem;
+}
+
+.guide-title i {
+    margin-right: 0.5rem;
+    color: #fff;
+}
+
+.guide-list {
+    color: #ccc;
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+.guide-list li {
+    margin-bottom: 0.5rem;
+}
+
+.guide-link {
+    color: #007bff;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.guide-link:hover {
+    color: #fff;
+    text-decoration: none;
+    text-shadow: 0 0 8px rgba(0,123,255,0.5);
+}
+
+.guide-divider {
+    border-color: #333;
+    margin: 2rem 0;
+}
+
+.alert-dashboard-info {
+    background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+    color: #fff;
+    border: none;
+    border-radius: 0;
+    border-left: 4px solid #fff;
+}
+
+.guide-tips {
+    color: #fff;
+    font-size: 0.9rem;
+}
+
+.guide-tips li {
+    margin-bottom: 0.5rem;
+}
+
+/* Фильтры */
+.btn-filter {
+    background: transparent;
+    color: #fff;
+    border: 1px solid #333;
+    border-radius: 0;
+    font-family: "Charter", "Georgia", serif;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.5rem 1rem;
+    transition: all 0.3s ease;
+}
+
+.btn-filter:hover {
+    background-color: rgba(255,255,255,0.1);
+    color: #fff;
+    border-color: #fff;
+}
+
+.btn-filter-all.active {
+    background-color: rgba(255,255,255,0.2);
+    border-color: #fff;
+}
+
+.btn-filter-complete.active {
+    background-color: rgba(40,167,69,0.3);
+    border-color: #28a745;
+}
+
+.btn-filter-partial.active {
+    background-color: rgba(255,193,7,0.3);
+    border-color: #ffc107;
+}
+
+.btn-filter-empty.active {
+    background-color: rgba(220,53,69,0.3);
+    border-color: #dc3545;
+}
+
+/* Таблицы */
+.table-dashboard {
+    color: #fff;
+    background-color: transparent;
+}
+
+.table-dashboard thead th {
+    background-color: #1a1a1a;
+    color: #fff;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-color: #333;
+    padding: 1rem;
+}
+
+.table-dashboard tbody tr {
+    border-color: #333;
+    transition: all 0.3s ease;
+}
+
+.table-dashboard tbody tr:hover {
+    background-color: rgba(255,255,255,0.05);
+}
+
+.table-dashboard tbody td {
+    border-color: #333;
+    padding: 1rem;
+    vertical-align: middle;
+}
+
+/* Бейджи переводов */
+.badge-translation {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    color: #fff;
+    border-radius: 0;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 0.8rem;
+    padding: 0.5rem 0.8rem;
+    margin: 0.2rem;
+    display: inline-block;
+}
+
+/* Прогресс бары */
+.progress-dashboard {
+    background-color: #333;
+    border-radius: 0;
+    overflow: hidden;
+}
+
+.progress-bar-dashboard {
+    border-radius: 0;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.progress-success {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+}
+
+.progress-warning {
+    background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+    color: #000;
+}
+
+.progress-danger {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+}
+
+/* Кнопки таблицы */
+.btn-table-edit {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    color: #fff;
+    border: 1px solid #007bff;
+    border-radius: 0;
+    font-family: "Charter", "Georgia", serif;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+    transition: all 0.3s ease;
+}
+
+.btn-table-edit:hover {
+    background: linear-gradient(135deg, #0056b3 0%, #007bff 100%);
+    color: #fff;
+    border-color: #0056b3;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,123,255,0.4);
+}
+
+.btn-table-add {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: #fff;
+    border: 1px solid #28a745;
+    border-radius: 0;
+    font-family: "Charter", "Georgia", serif;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+    transition: all 0.3s ease;
+}
+
+.btn-table-add:hover {
+    background: linear-gradient(135deg, #20c997 0%, #28a745 100%);
+    color: #fff;
+    border-color: #20c997;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(40,167,69,0.4);
+}
+
+/* Анимация появления */
+.stats-card, .dashboard-card {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+.stats-card:nth-child(1) { animation-delay: 0.1s; }
+.stats-card:nth-child(2) { animation-delay: 0.2s; }
+.stats-card:nth-child(3) { animation-delay: 0.3s; }
+.stats-card:nth-child(4) { animation-delay: 0.4s; }
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .dashboard-card .card-body {
+        padding: 1.5rem;
+    }
+    
+    .dashboard-card .card-header {
+        padding: 1rem;
+    }
+    
+    .dashboard-title {
+        font-size: 1.5rem;
+    }
+    
+    .btn {
+        padding: 0.6rem 1rem;
+        font-size: 0.8rem;
+    }
+    
+    .stats-card h3 {
+        font-size: 2rem;
+    }
+    
+    .table-dashboard tbody td {
+        padding: 0.75rem;
+    }
+}
+
+/* Дополнительные эффекты */
+.btn:active {
+    transform: translateY(0);
+}
+
+.text-muted {
+    color: #888 !important;
+}
+</style>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -318,6 +762,12 @@ document.addEventListener('DOMContentLoaded', function() {
 // Фильтрация категорий по статусу
 function filterByStatus(status) {
     const rows = document.querySelectorAll('#categories-table tbody tr');
+    const buttons = document.querySelectorAll('.btn-filter');
+    
+    // Обновляем активную кнопку
+    buttons.forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+    
     rows.forEach(row => {
         const rowStatus = row.dataset.status;
         if (status === 'all' || rowStatus === status) {
@@ -331,6 +781,12 @@ function filterByStatus(status) {
 // Фильтрация тегов по статусу
 function filterTagsByStatus(status) {
     const rows = document.querySelectorAll('#tags-table tbody tr');
+    const buttons = document.querySelectorAll('.btn-filter');
+    
+    // Обновляем активную кнопку
+    buttons.forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+    
     rows.forEach(row => {
         const rowStatus = row.dataset.status;
         if (status === 'all' || rowStatus === status) {

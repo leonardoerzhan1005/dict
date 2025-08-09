@@ -6,44 +6,48 @@
 <div class="container mt-4">
     <div class="row">
         <div class="col-lg-8">
-            <div class="card">
+            <div class="card profile-card shadow-lg">
                 <div class="card-header">
                     <h4><i class="fas fa-user"></i> Профиль пользователя</h4>
                 </div>
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-6">
-                            <h6>Основная информация</h6>
-                            <p><strong>Имя пользователя:</strong> {{ user.username }}</p>
-                            <p><strong>Email:</strong> {{ user.email|default:"Не указан" }}</p>
-                            <p><strong>Имя:</strong> {{ user.first_name|default:"Не указано" }}</p>
-                            <p><strong>Фамилия:</strong> {{ user.last_name|default:"Не указана" }}</p>
-                            <p><strong>Дата регистрации:</strong> {{ user.date_joined|date:"d.m.Y H:i" }}</p>
-                            <p><strong>Последний вход:</strong> {{ user.last_login|date:"d.m.Y H:i"|default:"Никогда" }}</p>
+                            <h6 class="profile-section-title">Основная информация</h6>
+                            <div class="profile-info">
+                                <p><strong>Имя пользователя:</strong> <span class="profile-value">{{ user.username }}</span></p>
+                                <p><strong>Email:</strong> <span class="profile-value">{{ user.email|default:"Не указан" }}</span></p>
+                                <p><strong>Имя:</strong> <span class="profile-value">{{ user.first_name|default:"Не указано" }}</span></p>
+                                <p><strong>Фамилия:</strong> <span class="profile-value">{{ user.last_name|default:"Не указана" }}</span></p>
+                                <p><strong>Дата регистрации:</strong> <span class="profile-value">{{ user.date_joined|date:"d.m.Y H:i" }}</span></p>
+                                <p><strong>Последний вход:</strong> <span class="profile-value">{{ user.last_login|date:"d.m.Y H:i"|default:"Никогда" }}</span></p>
+                            </div>
                         </div>
                         <div class="col-md-6">
-                            <h6>Статистика</h6>
-                            <p><strong>Статус:</strong> 
+                            <h6 class="profile-section-title">Статистика</h6>
+                            <div class="profile-info">
+                                <p><strong>Статус:</strong> 
+                                    {% if user.is_staff %}
+                                        <span class="badge badge-admin">Администратор</span>
+                                    {% elif user.is_active %}
+                                        <span class="badge badge-active">Активный пользователь</span>
+                                    {% else %}
+                                        <span class="badge badge-inactive">Неактивный</span>
+                                    {% endif %}
+                                </p>
                                 {% if user.is_staff %}
-                                    <span class="badge bg-success">Администратор</span>
-                                {% elif user.is_active %}
-                                    <span class="badge bg-primary">Активный пользователь</span>
-                                {% else %}
-                                    <span class="badge bg-secondary">Неактивный</span>
+                                    <p><strong>Доступ к админке:</strong> 
+                                        <a href="{% url 'admin:index' %}" class="btn btn-admin">
+                                            <i class="fas fa-cog"></i> Админка
+                                        </a>
+                                    </p>
+                                    <p><strong>Управление переводами:</strong> 
+                                        <a href="{% url 'dictionary:translation_dashboard' %}" class="btn btn-translations">
+                                            <i class="fas fa-language"></i> Переводы
+                                        </a>
+                                    </p>
                                 {% endif %}
-                            </p>
-                            {% if user.is_staff %}
-                                <p><strong>Доступ к админке:</strong> 
-                                    <a href="{% url 'admin:index' %}" class="btn btn-sm btn-outline-primary">
-                                        <i class="fas fa-cog"></i> Админка
-                                    </a>
-                                </p>
-                                <p><strong>Управление переводами:</strong> 
-                                    <a href="{% url 'dictionary:translation_dashboard' %}" class="btn btn-sm btn-outline-info">
-                                        <i class="fas fa-language"></i> Переводы
-                                    </a>
-                                </p>
-                            {% endif %}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -51,21 +55,21 @@
         </div>
         
         <div class="col-lg-4">
-            <div class="card">
+            <div class="card profile-actions-card shadow-lg">
                 <div class="card-header">
                     <h6>Действия</h6>
                 </div>
                 <div class="card-body">
-                    <div class="d-grid gap-2">
-                        <a href="{% url 'dictionary:home' %}" class="btn btn-outline-primary">
+                    <div class="d-grid gap-3">
+                        <a href="{% url 'dictionary:home' %}" class="btn btn-home">
                             <i class="fas fa-home"></i> На главную
                         </a>
                         {% if user.is_staff %}
-                            <a href="{% url 'admin:dictionary_word_add' %}" class="btn btn-outline-success">
+                            <a href="{% url 'admin:dictionary_word_add' %}" class="btn btn-add-word">
                                 <i class="fas fa-plus"></i> Добавить слово
                             </a>
                         {% endif %}
-                        <a href="{% url 'dictionary:logout' %}" class="btn btn-outline-danger">
+                        <a href="{% url 'dictionary:logout' %}" class="btn btn-logout">
                             <i class="fas fa-sign-out-alt"></i> Выйти
                         </a>
                     </div>
@@ -74,4 +78,255 @@
         </div>
     </div>
 </div>
+
+<style>
+/* Стили для страницы профиля в темной теме */
+.profile-card, .profile-actions-card {
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+    border: 1px solid #333;
+    border-radius: 0;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    color: #fff;
+    font-family: "Charter", "Georgia", serif;
+}
+
+.profile-card .card-header, .profile-actions-card .card-header {
+    background: linear-gradient(135deg, #000 0%, #1a1a1a 100%);
+    border-bottom: 2px solid #333;
+    color: #fff;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 1.5rem;
+}
+
+.profile-card .card-header h4, .profile-actions-card .card-header h6 {
+    margin: 0;
+    font-weight: 900;
+    color: #fff;
+}
+
+.profile-card .card-header i {
+    margin-right: 0.5rem;
+    color: #fff;
+}
+
+.profile-card .card-body, .profile-actions-card .card-body {
+    padding: 2rem;
+    background-color: #1a1a1a;
+}
+
+/* Секции профиля */
+.profile-section-title {
+    color: #fff;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-size: 1rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 2px solid #333;
+    padding-bottom: 0.5rem;
+}
+
+.profile-info p {
+    margin-bottom: 1rem;
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+.profile-info strong {
+    color: #ccc;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 0.85rem;
+}
+
+.profile-value {
+    color: #fff;
+    font-weight: 500;
+    margin-left: 0.5rem;
+}
+
+/* Бейджи статуса */
+.badge {
+    padding: 0.5rem 1rem;
+    border-radius: 0;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 0.8rem;
+}
+
+.badge-admin {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: #fff;
+    border: 1px solid #28a745;
+}
+
+.badge-active {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    color: #fff;
+    border: 1px solid #007bff;
+}
+
+.badge-inactive {
+    background: linear-gradient(135deg, #6c757d 0%, #545b62 100%);
+    color: #fff;
+    border: 1px solid #6c757d;
+}
+
+/* Кнопки действий */
+.btn {
+    border-radius: 0;
+    font-family: "Charter", "Georgia", serif;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 1rem;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    border: 2px solid;
+}
+
+.btn-home {
+    background: linear-gradient(135deg, #000 0%, #1a1a1a 100%);
+    color: #fff;
+    border-color: #fff;
+}
+
+.btn-home:hover {
+    background: linear-gradient(135deg, #fff 0%, #f8f8f8 100%);
+    color: #000;
+    border-color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(255,255,255,0.3);
+}
+
+.btn-add-word {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: #fff;
+    border-color: #28a745;
+}
+
+.btn-add-word:hover {
+    background: linear-gradient(135deg, #20c997 0%, #28a745 100%);
+    color: #fff;
+    border-color: #20c997;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(40,167,69,0.4);
+}
+
+.btn-admin {
+    background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+    color: #000;
+    border-color: #ffc107;
+    font-size: 0.9rem;
+    padding: 0.5rem 1rem;
+}
+
+.btn-admin:hover {
+    background: linear-gradient(135deg, #e0a800 0%, #ffc107 100%);
+    color: #000;
+    border-color: #e0a800;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(255,193,7,0.4);
+}
+
+.btn-translations {
+    background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+    color: #fff;
+    border-color: #17a2b8;
+    font-size: 0.9rem;
+    padding: 0.5rem 1rem;
+}
+
+.btn-translations:hover {
+    background: linear-gradient(135deg, #138496 0%, #17a2b8 100%);
+    color: #fff;
+    border-color: #138496;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(23,162,184,0.4);
+}
+
+.btn-logout {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    color: #fff;
+    border-color: #dc3545;
+}
+
+.btn-logout:hover {
+    background: linear-gradient(135deg, #c82333 0%, #dc3545 100%);
+    color: #fff;
+    border-color: #c82333;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(220,53,69,0.4);
+}
+
+.btn i {
+    margin-right: 0.5rem;
+}
+
+/* Анимация появления */
+.profile-card, .profile-actions-card {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+.profile-card {
+    animation-delay: 0.1s;
+}
+
+.profile-actions-card {
+    animation-delay: 0.2s;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .profile-card .card-body, .profile-actions-card .card-body {
+        padding: 1.5rem;
+    }
+    
+    .profile-card .card-header, .profile-actions-card .card-header {
+        padding: 1rem;
+    }
+    
+    .profile-card .card-header h4 {
+        font-size: 1.1rem;
+    }
+    
+    .btn {
+        padding: 0.8rem;
+        font-size: 0.9rem;
+    }
+    
+    .profile-info p {
+        font-size: 0.9rem;
+    }
+}
+
+/* Дополнительные эффекты */
+.profile-info p:hover {
+    background-color: rgba(255,255,255,0.05);
+    padding: 0.5rem;
+    margin: 0.5rem -0.5rem;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+.btn:active {
+    transform: translateY(0);
+}
+</style>
 {% endblock %} 

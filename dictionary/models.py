@@ -1,13 +1,68 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.utils import translation
+from django.utils.text import slugify
+from django.core.exceptions import ValidationError
+from django.db.models import Q
+
+
+class TimestampedModel(models.Model):
+    """Абстрактная модель с временными метками"""
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        abstract = True
+
+
+class SluggedModel(models.Model):
+    """Абстрактная модель с автоматическим slug"""
+    slug = models.SlugField(max_length=100, unique=True, blank=True, help_text='URL-friendly идентификатор')
+    
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.get_slug_source())
+        super().save(*args, **kwargs)
+    
+    def get_slug_source(self):
+        """Переопределить в дочерних классах"""
+        return str(self)
+    
+    class Meta:
+        abstract = True
+
 
 class Language(models.Model):
     """Справочник поддерживаемых языков."""
     code = models.CharField(max_length=10, unique=True)  # 'ru', 'kk', 'en', 'tr'
     name = models.CharField(max_length=50)  # 'Русский', 'Қазақша', 'English', 'Türkçe'
+    
+    @property
+    def word_count(self):
+        """Количество слов на этом языке"""
+        return self.word_set.filter(is_deleted=False, status='approved').count()
+    
+    def get_translation_progress(self):
+        """Процент переведенных категорий и тегов на этот язык"""
+        from django.db.models import Count
+        total_categories = Category.objects.count()
+        total_tags = Tag.objects.count()
+        
+        translated_categories = self.categorytranslation_set.count()
+        translated_tags = self.tagtranslation_set.count()
+        
+        total_items = total_categories + total_tags
+        translated_items = translated_categories + translated_tags
+        
+        return round((translated_items / total_items * 100) if total_items > 0 else 0, 1)
+    
     def __str__(self):
         return f'{self.name} ({self.code})'
+    
+    class Meta:
+        ordering = ['code']
+        verbose_name = 'Язык'
+        verbose_name_plural = 'Языки'
 
 class CustomUser(AbstractUser):
     preferred_language = models.ForeignKey(Language, on_delete=models.SET_NULL, null=True, blank=True, related_name='users', help_text='Язык интерфейса по умолчанию')
@@ -22,10 +77,34 @@ class CustomUser(AbstractUser):
     def __str__(self):
         return self.username
 
-class Category(models.Model):
+class Category(SluggedModel, TimestampedModel):
     code = models.CharField(max_length=50, unique=True)  # например, 'animals', 'food'
+    
+    def get_slug_source(self):
+        return self.code
+    
+    def get_name(self, language_code='ru'):
+        """Получить название на определенном языке"""
+        try:
+            return self.translations.get(language__code=language_code).name
+        except CategoryTranslation.DoesNotExist:
+            return self.code
+    
+    @property
+    def word_count(self):
+        """Количество слов в этой категории"""
+        return self.words.filter(is_deleted=False, status='approved').count()
+    
     def __str__(self):
         return self.code
+    
+    def get_absolute_url(self):
+        return f'/category/{self.slug}/'
+    
+    class Meta:
+        ordering = ['code']
+        verbose_name = 'Категория'
+        verbose_name_plural = 'Категории'
 
 class CategoryTranslation(models.Model):
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='translations')
@@ -37,10 +116,34 @@ class CategoryTranslation(models.Model):
     def __str__(self):
         return f'{self.category.code} [{self.language.code}]: {self.name[:20]}...'
 
-class Tag(models.Model):
+class Tag(SluggedModel, TimestampedModel):
     code = models.CharField(max_length=30, unique=True)  # например, 'noun', 'verb'
+    
+    def get_slug_source(self):
+        return self.code
+    
+    def get_name(self, language_code='ru'):
+        """Получить название на определенном языке"""
+        try:
+            return self.translations.get(language__code=language_code).name
+        except TagTranslation.DoesNotExist:
+            return self.code
+    
+    @property
+    def word_count(self):
+        """Количество слов с этим тегом"""
+        return self.words.filter(is_deleted=False, status='approved').count()
+    
     def __str__(self):
         return self.code
+    
+    def get_absolute_url(self):
+        return f'/tag/{self.slug}/'
+    
+    class Meta:
+        ordering = ['code']
+        verbose_name = 'Тег'
+        verbose_name_plural = 'Теги'
 
 class TagTranslation(models.Model):
     tag = models.ForeignKey(Tag, on_delete=models.CASCADE, related_name='translations')
@@ -50,6 +153,67 @@ class TagTranslation(models.Model):
         unique_together = ('tag', 'language')
     def __str__(self):
         return f'{self.tag.code} [{self.language.code}]: {self.name[:20]}...'
+
+
+class WordQuerySet(models.QuerySet):
+    """Кастомный QuerySet для модели Word"""
+    
+    def published(self):
+        """Только опубликованные и не удаленные слова"""
+        return self.filter(status='approved', is_deleted=False)
+    
+    def by_language(self, language_code):
+        """Фильтр по языку"""
+        return self.filter(language__code=language_code)
+    
+    def by_difficulty(self, difficulty):
+        """Фильтр по уровню сложности"""
+        return self.filter(difficulty=difficulty)
+    
+    def with_translations(self):
+        """Слова у которых есть переводы"""
+        return self.filter(from_translations__isnull=False).distinct()
+    
+    def without_translations(self):
+        """Слова без переводов"""
+        return self.filter(from_translations__isnull=True)
+    
+    def by_category(self, category_code):
+        """Фильтр по категории"""
+        return self.filter(category__code=category_code)
+    
+    def recent(self, days=30):
+        """Недавно добавленные слова"""
+        from django.utils import timezone
+        from datetime import timedelta
+        date_threshold = timezone.now() - timedelta(days=days)
+        return self.filter(created_at__gte=date_threshold)
+
+
+class WordManager(models.Manager):
+    """Кастомный менеджер для модели Word"""
+    
+    def get_queryset(self):
+        return WordQuerySet(self.model, using=self._db)
+    
+    def published(self):
+        return self.get_queryset().published()
+    
+    def by_language(self, language_code):
+        return self.get_queryset().by_language(language_code)
+    
+    def by_difficulty(self, difficulty):
+        return self.get_queryset().by_difficulty(difficulty)
+    
+    def with_translations(self):
+        return self.get_queryset().with_translations()
+    
+    def without_translations(self):
+        return self.get_queryset().without_translations()
+    
+    def recent(self, days=30):
+        return self.get_queryset().recent(days=days)
+
 
 class Word(models.Model):
     """Слово на определённом языке."""
@@ -64,6 +228,7 @@ class Word(models.Model):
         ('hard', 'Сложно'),
     ]
     word = models.CharField(max_length=100)
+    slug = models.SlugField(max_length=150, unique=True, blank=True, help_text='URL-friendly идентификатор')
     language = models.ForeignKey(Language, on_delete=models.CASCADE)
     meaning = models.TextField()
     # Если нужно поддерживать несколько категорий для одного слова, раскомментируйте:
@@ -82,44 +247,126 @@ class Word(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     translations = models.ManyToManyField('self', through='Translation', symmetrical=False, related_name='reverse_translations')
+    
+    # Кастомный менеджер
+    objects = WordManager()
+    
+    @property
+    def is_published(self):
+        """Проверка что слово опубликовано"""
+        return self.status == 'approved' and not self.is_deleted
+    
+    @property 
+    def translation_count(self):
+        """Количество переводов этого слова"""
+        return self.from_translations.filter(status='approved').count()
+    
+    def get_translations_for_language(self, language_code):
+        """Получить переводы на определенный язык"""
+        return self.from_translations.filter(
+            to_word__language__code=language_code,
+            status='approved'
+        ).select_related('to_word', 'to_word__language')
+    
+    def get_first_translation(self, language_code):
+        """Получить первый перевод на язык"""
+        translations = self.get_translations_for_language(language_code)
+        return translations.first().to_word if translations.exists() else None
+    
+    def has_audio(self):
+        """Проверка наличия аудиофайлов"""
+        return bool(self.audio or self.example_audio)
+    
+    def get_tags_display(self):
+        """Получить теги в виде строки"""
+        return ', '.join([tag.code for tag in self.tags.all()])
+    
     class Meta:
         unique_together = ('word', 'language')
+        ordering = ['word']
+        verbose_name = 'Слово'
+        verbose_name_plural = 'Слова'
         indexes = [
             models.Index(fields=['word']),
             models.Index(fields=['language']),
             models.Index(fields=['status']),
+            models.Index(fields=['slug']),
+            models.Index(fields=['created_at']),
+            models.Index(fields=['difficulty']),
         ]
+    
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            # Создаем slug из слова и языка
+            base_slug = slugify(self.word)
+            lang_suffix = f"-{self.language.code}"
+            self.slug = base_slug + lang_suffix
+        super().save(*args, **kwargs)
+    
     def __str__(self):
-        w = self.word if len(self.word) <= 20 else self.word[:17] + '...'
-        return f'{w} ({self.language.code})'
+        return f'{self.word} ({self.language.code})'
+    
+    def get_absolute_url(self):
+        return f'/word/{self.slug}/'
 
 class Translation(models.Model):
     """Связь между словами на разных языках (перевод).
     Если нужна симметрия (A→B = B→A), реализуйте через signals или вручную."""
     from_word = models.ForeignKey(Word, on_delete=models.CASCADE, related_name='from_translations')
     to_word = models.ForeignKey(Word, on_delete=models.CASCADE, related_name='to_translations')
-    note = models.CharField(max_length=100, blank=True)
-    order = models.PositiveIntegerField(default=0)
-    status = models.CharField(max_length=10, choices=Word.STATUS_CHOICES, default='approved')  # статус перевода
+    note = models.CharField(max_length=100, blank=True, help_text='Дополнительные примечания к переводу')
+    order = models.PositiveIntegerField(default=0, help_text='Порядок отображения переводов')
+    status = models.CharField(max_length=10, choices=Word.STATUS_CHOICES, default='approved', help_text='Статус перевода')
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    def clean(self):
+        """Валидация перевода"""
+        if hasattr(self, 'from_word') and hasattr(self, 'to_word'):
+            if self.from_word.language == self.to_word.language:
+                raise ValidationError('Нельзя переводить слово на тот же язык')
+            
+            if self.from_word == self.to_word:
+                raise ValidationError('Слово не может быть переводом самого себя')
+    
+    def save(self, *args, **kwargs):
+        self.clean()
+        super().save(*args, **kwargs)
+    
+    def __str__(self):
+        return f'{self.from_word.word} → {self.to_word.word}'
+    
     class Meta:
         unique_together = ('from_word', 'to_word')
-    def __str__(self):
-        fw = self.from_word.word if len(self.from_word.word) <= 15 else self.from_word.word[:12] + '...'
-        tw = self.to_word.word if len(self.to_word.word) <= 15 else self.to_word.word[:12] + '...'
-        return f'{fw} → {tw}'
+        ordering = ['from_word', 'order']
+        verbose_name = 'Перевод'
+        verbose_name_plural = 'Переводы'
 
-class Example(models.Model):
+class Example(TimestampedModel):
     word = models.ForeignKey(Word, on_delete=models.CASCADE, related_name='examples')
-    text = models.TextField()
-    author = models.ForeignKey('CustomUser', on_delete=models.SET_NULL, null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
+    text = models.TextField(help_text='Пример использования слова')
+    author = models.ForeignKey('CustomUser', on_delete=models.SET_NULL, null=True, blank=True, related_name='created_examples')
+    
+    def __str__(self):
+        return f'Пример для "{self.word.word}": {self.text[:50]}...'
+    
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Пример'
+        verbose_name_plural = 'Примеры'
 
 class Favourite(models.Model):
     user = models.ForeignKey('CustomUser', on_delete=models.CASCADE, related_name='favourites')
     word = models.ForeignKey(Word, on_delete=models.CASCADE, related_name='favourited_by')
     added_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f'{self.user.username} → {self.word.word}'
+    
     class Meta:
         unique_together = ('user', 'word')
+        ordering = ['-added_at']
+        verbose_name = 'Избранное'
+        verbose_name_plural = 'Избранное'
 
 class SearchHistory(models.Model):
     user = models.ForeignKey('CustomUser', on_delete=models.CASCADE, related_name='search_history')
@@ -127,12 +374,20 @@ class SearchHistory(models.Model):
     searched_at = models.DateTimeField(auto_now_add=True)
 
 class WordLike(models.Model):
-    user = models.ForeignKey('CustomUser', on_delete=models.CASCADE)
+    user = models.ForeignKey('CustomUser', on_delete=models.CASCADE, related_name='word_likes')
     word = models.ForeignKey(Word, on_delete=models.CASCADE, related_name='likes')
-    is_like = models.BooleanField()
+    is_like = models.BooleanField(help_text='True для лайка, False для дизлайка')
     created_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        action = '👍' if self.is_like else '👎'
+        return f'{self.user.username} {action} {self.word.word}'
+    
     class Meta:
         unique_together = ('user', 'word')
+        ordering = ['-created_at']
+        verbose_name = 'Оценка слова'
+        verbose_name_plural = 'Оценки слов'
 
 class WordChangeLog(models.Model):
     word = models.ForeignKey(Word, on_delete=models.CASCADE, related_name='change_logs')

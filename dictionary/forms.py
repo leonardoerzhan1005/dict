@@ -80,6 +80,44 @@ class WordForm(forms.ModelForm):
             'pronunciation': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'МФА транскрипция'}),
             'difficulty': forms.Select(attrs={'class': 'form-select'}),
         }
+    
+    def clean_word(self):
+        """Валидация уникальности слова в рамках языка"""
+        word = self.cleaned_data.get('word')
+        language = self.cleaned_data.get('language')
+        
+        if word and language:
+            # Проверка на дубликаты с учетом новых методов модели
+            existing = Word.objects.published().filter(
+                word__iexact=word, 
+                language=language
+            )
+            
+            # Исключаем текущий объект при редактировании
+            if self.instance and self.instance.pk:
+                existing = existing.exclude(pk=self.instance.pk)
+            
+            if existing.exists():
+                raise forms.ValidationError(
+                    f'Слово "{word}" уже существует на языке {language.name}. '
+                    f'Попробуйте использовать другую формулировку.'
+                )
+        
+        return word
+    
+    def clean(self):
+        """Дополнительная валидация формы"""
+        cleaned_data = super().clean()
+        word = cleaned_data.get('word')
+        meaning = cleaned_data.get('meaning')
+        
+        # Проверяем что есть основные поля
+        if word and meaning and len(meaning.strip()) < 10:
+            raise forms.ValidationError(
+                'Описание слова должно содержать не менее 10 символов для полноты информации.'
+            )
+        
+        return cleaned_data
 
 class WordTranslationForm(forms.Form):
     """Форма для перевода слов"""

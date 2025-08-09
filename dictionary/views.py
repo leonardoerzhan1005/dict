@@ -2,6 +2,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 from django.http import JsonResponse
+from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 from django.contrib import messages
 from django.db import transaction
@@ -41,10 +42,10 @@ def home(request):
     except ValueError:
         category_id = None
     
-    # Базовый queryset - только одобренные и не удалённые слова
-    words = Word.objects.filter(status='approved', is_deleted=False)
+    # Базовый queryset - используем новый менеджер
+    words = Word.objects.published()
     
-    # Фильтр по языку
+    # Фильтр по языку - используем новый метод
     if language_code:
         words = words.filter(language__code=language_code)
     
@@ -96,13 +97,17 @@ def home(request):
         'current_language': language_code,
         'current_category': category_id,
         'user_language': user_language,
+        # Дополнительная информация для редактора (только для персонала)
+        'recent_words': Word.objects.recent(days=7)[:5] if request.user.is_authenticated and request.user.is_staff else None,
+        'words_without_translations': Word.objects.without_translations()[:5] if request.user.is_authenticated and request.user.is_staff else None,
+        'total_published_words': Word.objects.published().count(),
     }
     
     return render(request, 'dictionary/home.html', context)
 
-def word_detail(request, word_id):
+def word_detail(request, slug):
     """Детальная страница слова с переводами"""
-    word = get_object_or_404(Word, id=word_id, status='approved', is_deleted=False)
+    word = get_object_or_404(Word, slug=slug, status='approved', is_deleted=False)
     
     # Получить все переводы слова
     translations = word.from_translations.all().select_related('to_word', 'to_word__language')
@@ -242,9 +247,9 @@ def translation_dashboard(request):
     return render(request, 'dictionary/translation_dashboard.html', context)
 
 @staff_member_required
-def category_translations_edit(request, category_id):
+def category_translations_edit(request, slug):
     """Редактирование переводов категории"""
-    category = get_object_or_404(Category, id=category_id)
+    category = get_object_or_404(Category, slug=slug)
     languages = Language.objects.all().order_by('code')
     
     if request.method == 'POST':
@@ -283,9 +288,9 @@ def category_translations_edit(request, category_id):
     return render(request, 'dictionary/category_translations_edit.html', context)
 
 @staff_member_required
-def tag_translations_edit(request, tag_id):
+def tag_translations_edit(request, slug):
     """Редактирование переводов тега"""
-    tag = get_object_or_404(Tag, id=tag_id)
+    tag = get_object_or_404(Tag, slug=slug)
     languages = Language.objects.all().order_by('code')
     
     if request.method == 'POST':
@@ -567,9 +572,9 @@ def word_translations_dashboard(request):
     return render(request, 'dictionary/word_translations_dashboard.html', context)
 
 @staff_member_required
-def word_translation_edit(request, word_id):
+def word_translation_edit(request, slug):
     """Редактирование переводов конкретного слова"""
-    word = get_object_or_404(Word, id=word_id, is_deleted=False)
+    word = get_object_or_404(Word, slug=slug, is_deleted=False)
     languages = Language.objects.all().order_by('code')
     
     if request.method == 'POST':
@@ -768,9 +773,9 @@ def translation_search(request):
     return render(request, 'dictionary/translation_search.html', context)
 
 @staff_member_required
-def multi_translate_word(request, word_id):
+def multi_translate_word(request, slug):
     """Мультиперевод одного слова на несколько языков одновременно"""
-    word = get_object_or_404(Word, id=word_id, is_deleted=False)
+    word = get_object_or_404(Word, slug=slug, is_deleted=False)
     languages = Language.objects.all().order_by('code')
     
     if request.method == 'POST':
@@ -1032,7 +1037,7 @@ def quick_translate(request):
     sort_order = request.GET.get('order', 'asc')  # asc, desc
     
     # Базовый queryset
-    words = Word.objects.filter(is_deleted=False, status='approved')
+    words = Word.objects.published()
     
     # Фильтрация по поиску
     if search_query:
@@ -1077,7 +1082,7 @@ def quick_translate(request):
     tags = Tag.objects.all().order_by('code')
     
     # Статистика
-    total_terms = Word.objects.filter(is_deleted=False, status='approved').count()
+    total_terms = Word.objects.published().count()
     terms_with_translations = Word.objects.filter(
         is_deleted=False, 
         status='approved',
@@ -1103,9 +1108,9 @@ def quick_translate(request):
     return render(request, 'dictionary/quick_translate.html', context)
 
 @staff_member_required
-def quick_translate_detail(request, term_id):
+def quick_translate_detail(request, slug):
     """Детальная страница термина с переводами"""
-    word = get_object_or_404(Word, id=term_id, is_deleted=False)
+    word = get_object_or_404(Word, slug=slug, is_deleted=False)
     
     if request.method == 'POST':
         # Обработка сохранения переводов
@@ -1179,7 +1184,7 @@ def quick_translate_detail(request, term_id):
                 else:
                     messages.info(request, 'Изменения сохранены')
                 
-                return redirect('dictionary:quick_translate_detail', term_id=word.id)
+                return redirect('dictionary:quick_translate_detail', slug=word.slug)
                 
         except Exception as e:
             messages.error(request, f'Ошибка при сохранении: {str(e)}')
@@ -1235,28 +1240,30 @@ def word_create(request):
             word.save()
             form.save_m2m()  # Сохраняем many-to-many поля (tags)
             messages.success(request, f'Слово "{word.word}" успешно создано')
-            return redirect('dictionary:word_detail', word_id=word.id)
+            return redirect('dictionary:word_detail', slug=word.slug)
     else:
         form = WordForm()
     
     context = {
         'form': form,
         'title': 'Создание нового слова',
-        'submit_text': 'Создать слово'
+        'submit_text': 'Создать слово',
+        'recent_words': Word.objects.recent(days=7)[:5],
+        'words_without_translations': Word.objects.without_translations()[:5],
     }
     return render(request, 'dictionary/word_form.html', context)
 
 @staff_member_required
-def word_edit(request, word_id):
+def word_edit(request, slug):
     """Редактирование слова"""
-    word = get_object_or_404(Word, id=word_id)
+    word = get_object_or_404(Word, slug=slug)
     
     if request.method == 'POST':
         form = WordForm(request.POST, instance=word)
         if form.is_valid():
             word = form.save()
             messages.success(request, f'Слово "{word.word}" успешно обновлено')
-            return redirect('dictionary:word_detail', word_id=word.id)
+            return redirect('dictionary:word_detail', slug=word.slug)
     else:
         form = WordForm(instance=word)
     
@@ -1264,7 +1271,9 @@ def word_edit(request, word_id):
         'form': form,
         'word': word,
         'title': f'Редактирование слова "{word.word}"',
-        'submit_text': 'Сохранить изменения'
+        'submit_text': 'Сохранить изменения',
+        'recent_words': Word.objects.recent(days=7)[:5],
+        'words_without_translations': Word.objects.without_translations()[:5],
     }
     return render(request, 'dictionary/word_form.html', context)
 
@@ -1280,7 +1289,7 @@ def term_list(request):
     sort_order = request.GET.get('order', 'asc')  # asc, desc
     
     # Базовый queryset
-    words = Word.objects.filter(is_deleted=False, status='approved')
+    words = Word.objects.published()
     
     # Фильтрация по поиску
     if search_query:
@@ -1325,7 +1334,7 @@ def term_list(request):
     tags = Tag.objects.all().order_by('code')
     
     # Статистика
-    total_terms = Word.objects.filter(is_deleted=False, status='approved').count()
+    total_terms = Word.objects.published().count()
     terms_with_translations = Word.objects.filter(
         is_deleted=False, 
         status='approved',
@@ -1535,3 +1544,153 @@ def tinymce_upload_image(request):
             }, content_type='application/json')
     
     return JsonResponse({'error': 'No image uploaded'}, status=400)
+
+
+def check_translations_api(request):
+    """API для проверки существующих переводов слова"""
+    word_text = request.GET.get('word', '').strip()
+    language_id = request.GET.get('language', '').strip()
+    
+    if not word_text or not language_id:
+        return JsonResponse({'error': 'Не указано слово или язык'}, status=400)
+    
+    try:
+        language = Language.objects.get(id=language_id)
+    except Language.DoesNotExist:
+        return JsonResponse({'error': 'Язык не найден'}, status=404)
+    
+    # Проверяем существование слова
+    existing_word = Word.objects.filter(
+        word__iexact=word_text,
+        language=language
+    ).first()
+    
+    if existing_word:
+        # Слово уже существует - возвращаем информацию о переводах
+        translations = []
+        for translation in existing_word.from_translations.select_related('to_word__language'):
+            translations.append({
+                'language': translation.to_word.language.name,
+                'word': translation.to_word.word
+            })
+        
+        return JsonResponse({
+            'exists': True,
+            'word_id': existing_word.id,
+            'word_url': reverse('dictionary:word_detail', kwargs={'slug': existing_word.slug}),
+            'translate_url': reverse('dictionary:word_translation_edit', kwargs={'slug': existing_word.slug}),
+            'translations': translations
+        })
+    
+    # Слово не существует - ищем похожие
+    similar_words = Word.objects.filter(
+        Q(word__icontains=word_text) | Q(word__istartswith=word_text),
+        language=language
+    ).exclude(word__iexact=word_text)[:5]
+    
+    similar_data = []
+    for word in similar_words:
+        similar_data.append({
+            'word': word.word,
+            'url': reverse('dictionary:word_detail', kwargs={'slug': word.slug})
+        })
+    
+    return JsonResponse({
+        'exists': False,
+        'similar_words': similar_data
+    })
+
+
+@staff_member_required
+def create_category_api(request):
+    """API для создания новой категории"""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Метод не поддерживается'}, status=405)
+    
+    try:
+        data = json.loads(request.body)
+        code = data.get('code', '').strip()
+        name = data.get('name', '').strip()
+        description = data.get('description', '').strip()
+        
+        if not code or not name:
+            return JsonResponse({'error': 'Код и название обязательны'}, status=400)
+        
+        # Проверяем уникальность кода
+        if Category.objects.filter(code=code).exists():
+            return JsonResponse({'error': f'Категория с кодом "{code}" уже существует'}, status=400)
+        
+        # Создаем категорию
+        category = Category.objects.create(
+            code=code
+        )
+        
+        # Создаем переводы названий для всех языков
+        languages = Language.objects.all()
+        for language in languages:
+            CategoryTranslation.objects.create(
+                category=category,
+                language=language,
+                name=name
+            )
+        
+        return JsonResponse({
+            'success': True,
+            'category': {
+                'id': category.id,
+                'code': category.code
+            }
+        })
+        
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Некорректный JSON'}, status=400)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@staff_member_required
+def create_tag_api(request):
+    """API для создания нового тега"""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Метод не поддерживается'}, status=405)
+    
+    try:
+        data = json.loads(request.body)
+        code = data.get('code', '').strip()
+        name = data.get('name', '').strip()
+        description = data.get('description', '').strip()
+        
+        if not code or not name:
+            return JsonResponse({'error': 'Код и название обязательны'}, status=400)
+        
+        # Проверяем уникальность кода
+        if Tag.objects.filter(code=code).exists():
+            return JsonResponse({'error': f'Тег с кодом "{code}" уже существует'}, status=400)
+        
+        # Создаем тег
+        tag = Tag.objects.create(
+            code=code
+        )
+        
+        # Создаем переводы названий для всех языков
+        languages = Language.objects.all()
+        for language in languages:
+            TagTranslation.objects.create(
+                tag=tag,
+                language=language,
+                name=name  # Используем одно название для всех языков пока
+            )
+            # Примечание: TagTranslation не имеет поля description
+        
+        return JsonResponse({
+            'success': True,
+            'tag': {
+                'id': tag.id,
+                'code': tag.code
+            }
+        })
+        
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Некорректный JSON'}, status=400)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)

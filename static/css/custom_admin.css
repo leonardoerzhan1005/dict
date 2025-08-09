@@ -1,0 +1,118 @@
+/* Улучшения для Django Admin */
+
+/* Современные цвета и стили */
+:root {
+    --primary-color: #2c3e50;
+    --secondary-color: #3498db;
+    --success-color: #27ae60;
+    --warning-color: #f39c12;
+    --danger-color: #e74c3c;
+    --light-gray: #ecf0f1;
+    --dark-gray: #7f8c8d;
+}
+
+/* Улучшенные кнопки */
+.button, input[type="submit"], input[type="button"], .btn {
+    background: linear-gradient(135deg, var(--secondary-color), #2980b9);
+    border: none;
+    border-radius: 6px;
+    padding: 10px 20px;
+    color: white;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.button:hover, input[type="submit"]:hover, input[type="button"]:hover, .btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+/* Улучшенные таблицы */
+.results {
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.results th {
+    background: var(--primary-color);
+    color: white;
+    font-weight: 600;
+    padding: 15px 10px;
+}
+
+.results td {
+    padding: 12px 10px;
+    border-bottom: 1px solid var(--light-gray);
+}
+
+.results tr:hover {
+    background-color: #f8f9fa;
+}
+
+/* Статусные индикаторы */
+.status-pending { color: var(--warning-color); font-weight: 600; }
+.status-approved { color: var(--success-color); font-weight: 600; }
+.status-rejected { color: var(--danger-color); font-weight: 600; }
+
+/* Улучшенные формы */
+.form-row {
+    margin-bottom: 20px;
+    padding: 15px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.form-row label {
+    font-weight: 600;
+    color: var(--primary-color);
+    margin-bottom: 5px;
+    display: block;
+}
+
+/* Улучшенные фильтры */
+#changelist-filter {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    padding: 15px;
+}
+
+#changelist-filter h2 {
+    color: var(--primary-color);
+    border-bottom: 2px solid var(--secondary-color);
+    padding-bottom: 8px;
+}
+
+/* Улучшенный поиск */
+.search-form {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .results {
+        font-size: 14px;
+    }
+    
+    .button, input[type="submit"], input[type="button"], .btn {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+}
+
+/* Анимации */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.results, .form-row, .search-form {
+    animation: fadeIn 0.3s ease-out;
+} 

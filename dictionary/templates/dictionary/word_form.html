@@ -9,14 +9,14 @@
 {% block content %}
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1><i class="fas fa-edit"></i> {{ title }}</h1>
+        <h1 class="form-title"><i class="fas fa-edit"></i> {{ title }}</h1>
         <div>
             {% if word %}
-                <a href="{% url 'dictionary:word_detail' word.id %}" class="btn btn-secondary">
+                <a href="{% url 'dictionary:word_detail' word.slug %}" class="btn btn-form-view">
                     <i class="fas fa-eye"></i> Просмотр
                 </a>
             {% endif %}
-            <a href="{% url 'dictionary:home' %}" class="btn btn-outline-secondary">
+            <a href="{% url 'dictionary:home' %}" class="btn btn-form-back">
                 <i class="fas fa-arrow-left"></i> Назад
             </a>
         </div>
@@ -24,7 +24,7 @@
 
     <div class="row">
         <div class="col-md-8">
-            <div class="card">
+            <div class="card form-card">
                 <div class="card-header">
                     <h5><i class="fas fa-language"></i> Информация о слове</h5>
                 </div>
@@ -62,6 +62,12 @@
                                         {% endfor %}
                                     </div>
                                 {% endif %}
+                                <!-- Кнопка для быстрого перехода к переводу -->
+                                <div class="mt-2">
+                                    <button type="button" class="btn btn-sm btn-outline-info" id="check-translation-btn" style="display: none;">
+                                        <i class="fas fa-language"></i> Проверить переводы на этот язык
+                                    </button>
+                                </div>
                             </div>
                         </div>
                         
@@ -69,6 +75,12 @@
                             <div class="col-md-6 mb-3">
                                 <label for="{{ form.category.id_for_label }}" class="form-label">
                                     {{ form.category.label }}
+                                    <button type="button" class="btn btn-sm btn-outline-success ms-2" onclick="showCreateCategoryModal()">
+                                        <i class="fas fa-plus"></i> Создать
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-primary ms-1" onclick="showEditCategoryModal()" id="edit-category-btn" style="display: none;">
+                                        <i class="fas fa-edit"></i> Редактировать
+                                    </button>
                                 </label>
                                 {{ form.category }}
                                 {% if form.category.errors %}
@@ -98,6 +110,12 @@
                         <div class="mb-3">
                             <label for="{{ form.tags.id_for_label }}" class="form-label">
                                 {{ form.tags.label }}
+                                <button type="button" class="btn btn-sm btn-outline-success ms-2" onclick="showCreateTagModal()">
+                                    <i class="fas fa-plus"></i> Создать тег
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-primary ms-1" onclick="showManageTagsModal()">
+                                    <i class="fas fa-cogs"></i> Управление
+                                </button>
                             </label>
                             {{ form.tags }}
                             {% if form.tags.errors %}
@@ -107,6 +125,7 @@
                                     {% endfor %}
                                 </div>
                             {% endif %}
+                            <div class="form-text">Можно выбрать несколько тегов или создать новые</div>
                         </div>
                         
                         <div class="row">
@@ -157,10 +176,10 @@
                         </div>
                         
                         <div class="mt-4">
-                            <button type="submit" class="btn btn-primary">
+                            <button type="submit" class="btn btn-form-submit">
                                 <i class="fas fa-save"></i> {{ submit_text }}
                             </button>
-                            <a href="{% url 'dictionary:home' %}" class="btn btn-secondary">
+                            <a href="{% url 'dictionary:home' %}" class="btn btn-form-cancel">
                                 <i class="fas fa-times"></i> Отмена
                             </a>
                         </div>
@@ -170,13 +189,13 @@
         </div>
         
         <div class="col-md-4">
-            <div class="card">
+            <div class="card tips-card">
                 <div class="card-header">
                     <h6><i class="fas fa-info-circle"></i> Подсказки</h6>
                 </div>
                 <div class="card-body">
-                    <h6>Рекомендации по форматированию:</h6>
-                    <ul class="list-unstyled">
+                    <h6 class="tips-title">Рекомендации по форматированию:</h6>
+                    <ul class="tips-list">
                         <li>• Используйте <strong>жирный текст</strong> для выделения важных терминов</li>
                         <li>• Используйте <em>курсив</em> для иностранных слов или примеров</li>
                         <li>• Создавайте списки для перечисления значений</li>
@@ -187,18 +206,1277 @@
                         <li>• Создавайте таблицы для структурированной информации</li>
                     </ul>
                     
-                    <h6>Общие рекомендации:</h6>
-                    <ul class="list-unstyled">
-                        <li>• Пишите понятно и структурированно</li>
+                    <h6 class="tips-title">Общие рекомендации:</h6>
+                    <ul class="tips-list">
+                        <li>• Пишите понятно и структурированно (минимум 10 символов)</li>
                         <li>• Добавляйте примеры использования</li>
                         <li>• Указывайте синонимы и антонимы</li>
                         <li>• Приводите примеры предложений</li>
+                        <li>• Система автоматически создаст URL из названия слова</li>
+                        <li>• Дубликаты слов на одном языке не допускаются</li>
                     </ul>
+                    
+                    {% if recent_words %}
+                    <h6 class="tips-title">Недавно добавленные слова:</h6>
+                    <ul class="tips-list">
+                        {% for recent_word in recent_words %}
+                        <li>• <a href="{% url 'dictionary:word_detail' recent_word.slug %}" style="color: #17a2b8;">{{ recent_word.word }}</a> ({{ recent_word.language.code }})</li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                    
+                    {% if words_without_translations %}
+                    <h6 class="tips-title">Требуют переводов:</h6>
+                    <ul class="tips-list">
+                        {% for word_no_trans in words_without_translations %}
+                        <li>• <a href="{% url 'dictionary:word_detail' word_no_trans.slug %}" style="color: #ffc107;">{{ word_no_trans.word }}</a> ({{ word_no_trans.language.code }})</li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
                 </div>
             </div>
         </div>
     </div>
 </div>
 
+<!-- Модальное окно для создания категории -->
+<div class="modal fade" id="createCategoryModal" tabindex="-1" aria-labelledby="createCategoryModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content category-modal">
+            <div class="modal-header">
+                <h5 class="modal-title" id="createCategoryModalLabel">
+                    <i class="fas fa-folder-plus"></i> Создать новую категорию
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createCategoryForm">
+                    <div class="mb-3">
+                        <label for="newCategoryCode" class="form-label">Код категории <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="newCategoryCode" placeholder="contract" required>
+                        <div class="form-text">Короткий код на английском (используется в URL)</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="newCategoryName" class="form-label">Название <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="newCategoryName" placeholder="Контракты" required>
+                        <div class="form-text">Название категории для отображения</div>
+                    </div>
 
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                <button type="button" class="btn btn-success" onclick="createCategory()">
+                    <i class="fas fa-save"></i> Создать категорию
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно для создания тега -->
+<div class="modal fade" id="createTagModal" tabindex="-1" aria-labelledby="createTagModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content tag-modal">
+            <div class="modal-header">
+                <h5 class="modal-title" id="createTagModalLabel">
+                    <i class="fas fa-tag"></i> Создать новый тег
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createTagForm">
+                    <div class="mb-3">
+                        <label for="newTagCode" class="form-label">Код тега <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="newTagCode" placeholder="legal-term" required>
+                        <div class="form-text">Короткий код на английском</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="newTagName" class="form-label">Название <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="newTagName" placeholder="Юридический термин" required>
+                        <div class="form-text">Название тега для отображения</div>
+                    </div>
+
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                <button type="button" class="btn btn-success" onclick="createTag()">
+                    <i class="fas fa-save"></i> Создать тег
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно для редактирования категории -->
+<div class="modal fade" id="editCategoryModal" tabindex="-1" aria-labelledby="editCategoryModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content category-modal">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editCategoryModalLabel">
+                    <i class="fas fa-edit"></i> Редактировать категорию
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editCategoryForm">
+                    <input type="hidden" id="editCategoryId">
+                    <div class="mb-3">
+                        <label for="editCategoryCode" class="form-label">Код категории <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="editCategoryCode" required>
+                        <div class="form-text">Короткий код на английском (используется в URL)</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editCategoryName" class="form-label">Название <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="editCategoryName" required>
+                        <div class="form-text">Название категории для отображения</div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" onclick="deleteCategory()">
+                    <i class="fas fa-trash"></i> Удалить
+                </button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                <button type="button" class="btn btn-primary" onclick="updateCategory()">
+                    <i class="fas fa-save"></i> Сохранить
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно для управления тегами -->
+<div class="modal fade" id="manageTagsModal" tabindex="-1" aria-labelledby="manageTagsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content tag-modal">
+            <div class="modal-header">
+                <h5 class="modal-title" id="manageTagsModalLabel">
+                    <i class="fas fa-cogs"></i> Управление тегами
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <input type="text" class="form-control" id="tagSearch" placeholder="Поиск тегов..." onkeyup="filterTags()">
+                </div>
+                <div id="tagsList" class="tags-list">
+                    <!-- Теги будут загружены через AJAX -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Стили для страницы формы слова в темной теме */
+.form-title {
+    color: #fff;
+    font-family: "Charter", "Georgia", serif;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin: 0;
+}
+
+.form-title i {
+    margin-right: 0.5rem;
+    color: #fff;
+}
+
+/* Кнопки формы */
+.btn-form-view {
+    background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+    color: #fff;
+    border: 2px solid #17a2b8;
+    border-radius: 0;
+    font-family: "Charter", "Georgia", serif;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 0.75rem 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.btn-form-view:hover {
+    background: linear-gradient(135deg, #138496 0%, #17a2b8 100%);
+    color: #fff;
+    border-color: #138496;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(23,162,184,0.4);
+}
+
+.btn-form-back {
+    background: linear-gradient(135deg, #6c757d 0%, #545b62 100%);
+    color: #fff;
+    border: 2px solid #6c757d;
+    border-radius: 0;
+    font-family: "Charter", "Georgia", serif;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 0.75rem 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.btn-form-back:hover {
+    background: linear-gradient(135deg, #545b62 0%, #6c757d 100%);
+    color: #fff;
+    border-color: #545b62;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(108,117,125,0.4);
+}
+
+/* Карточки формы */
+.form-card, .tips-card {
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+    border: 1px solid #333;
+    border-radius: 0;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    color: #fff;
+    font-family: "Charter", "Georgia", serif;
+}
+
+.form-card .card-header, .tips-card .card-header {
+    background: linear-gradient(135deg, #000 0%, #1a1a1a 100%);
+    border-bottom: 2px solid #333;
+    color: #fff;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 1.5rem;
+}
+
+.form-card .card-header h5, .tips-card .card-header h6 {
+    margin: 0;
+    font-weight: 900;
+    color: #fff;
+}
+
+.form-card .card-header i {
+    margin-right: 0.5rem;
+    color: #fff;
+}
+
+.form-card .card-body, .tips-card .card-body {
+    padding: 2rem;
+    background-color: #1a1a1a;
+}
+
+/* Стили для форм */
+.form-label {
+    color: #fff;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.form-control, .form-select {
+    background-color: #2d2d2d !important;
+    border: 1px solid #444 !important;
+    border-radius: 0 !important;
+    color: #fff !important;
+    padding: 0.75rem 1rem !important;
+    font-size: 1rem !important;
+    font-family: "Charter", "Georgia", serif !important;
+    transition: all 0.3s ease !important;
+}
+
+.form-control::placeholder {
+    color: #888 !important;
+}
+
+.form-control:focus, .form-select:focus {
+    background-color: #333 !important;
+    border-color: #fff !important;
+    box-shadow: 0 0 0 3px rgba(255,255,255,0.1) !important;
+    outline: none !important;
+    color: #fff !important;
+}
+
+.form-text {
+    color: #ccc;
+    font-size: 0.85rem;
+    font-style: italic;
+}
+
+/* TinyMCE редактор */
+.tox-tinymce {
+    background-color: #2d2d2d !important;
+    border: 1px solid #444 !important;
+    border-radius: 0 !important;
+}
+
+.tox .tox-toolbar {
+    background-color: #1a1a1a !important;
+    border-bottom: 1px solid #333 !important;
+}
+
+.tox .tox-toolbar__group {
+    border-right: 1px solid #333 !important;
+}
+
+.tox .tox-tbtn {
+    background-color: transparent !important;
+    color: #fff !important;
+    border: none !important;
+}
+
+.tox .tox-tbtn:hover {
+    background-color: rgba(255,255,255,0.1) !important;
+}
+
+.tox .tox-edit-area {
+    background-color: #2d2d2d !important;
+}
+
+.tox .tox-edit-area__iframe {
+    background-color: #2d2d2d !important;
+}
+
+/* Кнопки формы */
+.btn-form-submit {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: #fff;
+    border: 2px solid #28a745;
+    border-radius: 0;
+    font-family: "Charter", "Georgia", serif;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 1rem 2rem;
+    transition: all 0.3s ease;
+}
+
+.btn-form-submit:hover {
+    background: linear-gradient(135deg, #20c997 0%, #28a745 100%);
+    color: #fff;
+    border-color: #20c997;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(40,167,69,0.4);
+}
+
+.btn-form-cancel {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    color: #fff;
+    border: 2px solid #dc3545;
+    border-radius: 0;
+    font-family: "Charter", "Georgia", serif;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 1rem 2rem;
+    transition: all 0.3s ease;
+}
+
+.btn-form-cancel:hover {
+    background: linear-gradient(135deg, #c82333 0%, #dc3545 100%);
+    color: #fff;
+    border-color: #c82333;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(220,53,69,0.4);
+}
+
+.btn i {
+    margin-right: 0.5rem;
+}
+
+/* Подсказки */
+.tips-title {
+    color: #fff;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-size: 1rem;
+    margin-bottom: 1rem;
+    border-bottom: 2px solid #333;
+    padding-bottom: 0.5rem;
+}
+
+.tips-list {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 1.5rem 0;
+    color: #ccc;
+    font-size: 0.9rem;
+    line-height: 1.6;
+}
+
+.tips-list li {
+    margin-bottom: 0.5rem;
+    padding: 0.5rem;
+    border-radius: 0;
+    transition: all 0.3s ease;
+}
+
+.tips-list li:hover {
+    background-color: rgba(255,255,255,0.05);
+    transform: translateX(5px);
+}
+
+.tips-list strong {
+    color: #fff;
+    font-weight: 700;
+}
+
+.tips-list em {
+    color: #ffc107;
+    font-style: italic;
+}
+
+.tips-list u {
+    color: #17a2b8;
+    text-decoration: underline;
+}
+
+/* Ошибки валидации */
+.text-danger {
+    color: #ff6b6b !important;
+    font-size: 0.85rem;
+    margin-top: 0.25rem;
+    font-family: "Charter", "Georgia", serif;
+}
+
+/* Анимация появления */
+.form-card, .tips-card {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+.form-card {
+    animation-delay: 0.1s;
+}
+
+.tips-card {
+    animation-delay: 0.2s;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .form-card .card-body, .tips-card .card-body {
+        padding: 1.5rem;
+    }
+    
+    .form-card .card-header, .tips-card .card-header {
+        padding: 1rem;
+    }
+    
+    .form-title {
+        font-size: 1.5rem;
+    }
+    
+    .btn {
+        padding: 0.8rem 1.5rem;
+        font-size: 0.9rem;
+    }
+    
+    .tips-list {
+        font-size: 0.85rem;
+    }
+}
+
+/* Дополнительные эффекты */
+.btn:active {
+    transform: translateY(0);
+}
+
+.form-control:focus + .form-label {
+    color: #fff;
+    text-shadow: 0 0 8px rgba(255,255,255,0.3);
+}
+
+/* Стили для select2 (если используется) */
+.select2-container--default .select2-selection--multiple {
+    background-color: #2d2d2d !important;
+    border: 1px solid #444 !important;
+    border-radius: 0 !important;
+}
+
+.select2-container--default .select2-selection--multiple .select2-selection__choice {
+    background-color: #007bff !important;
+    color: #fff !important;
+    border: none !important;
+    border-radius: 0 !important;
+}
+
+.select2-dropdown {
+    background-color: #2d2d2d !important;
+    border: 1px solid #444 !important;
+    border-radius: 0 !important;
+}
+
+.select2-results__option {
+    color: #fff !important;
+    padding: 0.5rem 1rem !important;
+}
+
+.select2-results__option--highlighted {
+    background-color: #007bff !important;
+    color: #fff !important;
+}
+
+/* Кнопка проверки переводов */
+.btn-outline-info {
+    background: transparent;
+    color: #17a2b8;
+    border: 1px solid #17a2b8;
+    border-radius: 0;
+    font-family: "Charter", "Georgia", serif;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    transition: all 0.3s ease;
+}
+
+.btn-outline-info:hover {
+    background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+    color: #fff;
+    border-color: #17a2b8;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(23,162,184,0.4);
+}
+
+/* Уведомление о переводах */
+.translation-notification {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: #fff;
+    padding: 1rem;
+    border-radius: 0;
+    margin-top: 1rem;
+    font-family: "Charter", "Georgia", serif;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    animation: fadeInUp 0.5s ease-out;
+}
+
+.translation-notification.warning {
+    background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+    color: #000;
+}
+
+/* Стили для модальных окон */
+.category-modal, .tag-modal {
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+    border: 1px solid #333;
+    border-radius: 0;
+    color: #fff;
+    font-family: "Charter", "Georgia", serif;
+}
+
+.category-modal .modal-header, .tag-modal .modal-header {
+    background: linear-gradient(135deg, #000 0%, #1a1a1a 100%);
+    border-bottom: 2px solid #333;
+    color: #fff;
+    padding: 1.5rem;
+}
+
+.category-modal .modal-title, .tag-modal .modal-title {
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #fff;
+}
+
+.category-modal .modal-body, .tag-modal .modal-body {
+    background-color: #1a1a1a;
+    padding: 2rem;
+}
+
+.category-modal .modal-footer, .tag-modal .modal-footer {
+    background-color: #1a1a1a;
+    border-top: 2px solid #333;
+    padding: 1.5rem;
+}
+
+.btn-close {
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 1.5rem;
+    opacity: 0.7;
+}
+
+.btn-close:hover {
+    opacity: 1;
+    color: #fff;
+}
+
+/* Кнопки создания */
+.btn-outline-success {
+    background: transparent;
+    color: #28a745;
+    border: 1px solid #28a745;
+    border-radius: 0;
+    font-family: "Charter", "Georgia", serif;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    transition: all 0.3s ease;
+}
+
+.btn-outline-success:hover {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: #fff;
+    border-color: #28a745;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(40,167,69,0.4);
+}
+
+.btn-outline-primary {
+    background: transparent;
+    color: #007bff;
+    border: 1px solid #007bff;
+    border-radius: 0;
+    font-family: "Charter", "Georgia", serif;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    transition: all 0.3s ease;
+}
+
+.btn-outline-primary:hover {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    color: #fff;
+    border-color: #007bff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,123,255,0.4);
+}
+
+/* Стили для списка тегов */
+.tags-list {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.tag-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem;
+    border-bottom: 1px solid #333;
+    transition: all 0.3s ease;
+}
+
+.tag-item:hover {
+    background-color: rgba(255,255,255,0.05);
+}
+
+.tag-info {
+    flex-grow: 1;
+}
+
+.tag-code {
+    font-weight: bold;
+    color: #fff;
+    margin-bottom: 0.25rem;
+}
+
+.tag-name {
+    color: #ccc;
+    font-size: 0.9rem;
+}
+
+.tag-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const wordInput = document.querySelector('input[name="word"]');
+    const languageSelect = document.querySelector('select[name="language"]');
+    const checkTranslationBtn = document.getElementById('check-translation-btn');
+    
+    // Отслеживаем изменения в полях слова и языка
+    function checkForTranslations() {
+        const word = wordInput.value.trim();
+        const languageId = languageSelect.value;
+        
+        if (word && languageId) {
+            // Показываем кнопку проверки переводов
+            checkTranslationBtn.style.display = 'block';
+            
+            // Обновляем текст кнопки с названием языка
+            const selectedLanguageText = languageSelect.options[languageSelect.selectedIndex].text;
+            checkTranslationBtn.innerHTML = `<i class="fas fa-language"></i> Проверить переводы на ${selectedLanguageText}`;
+        } else {
+            checkTranslationBtn.style.display = 'none';
+        }
+    }
+    
+    // Слушаем изменения
+    wordInput.addEventListener('input', checkForTranslations);
+    languageSelect.addEventListener('change', checkForTranslations);
+    
+    // Обработчик клика по кнопке проверки переводов
+    checkTranslationBtn.addEventListener('click', function() {
+        const word = wordInput.value.trim();
+        const languageId = languageSelect.value;
+        
+        if (!word || !languageId) {
+            alert('Сначала введите слово и выберите язык');
+            return;
+        }
+        
+        // Показываем индикатор загрузки
+        this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Проверяем...';
+        this.disabled = true;
+        
+        // AJAX запрос для проверки существующих переводов
+        fetch(`/api/check-translations/?word=${encodeURIComponent(word)}&language=${languageId}`)
+            .then(response => response.json())
+            .then(data => {
+                this.disabled = false;
+                checkForTranslations(); // Восстанавливаем текст кнопки
+                
+                // Удаляем предыдущие уведомления
+                const existingNotifications = document.querySelectorAll('.translation-notification');
+                existingNotifications.forEach(n => n.remove());
+                
+                // Создаем уведомление о результатах
+                const notification = document.createElement('div');
+                
+                if (data.exists) {
+                    // Слово уже существует
+                    notification.className = 'translation-notification warning';
+                    notification.innerHTML = `
+                        <strong>⚠️ Внимание!</strong> Слово "${word}" уже существует на выбранном языке.
+                        <br><a href="${data.word_url}" style="color: #000; text-decoration: underline;">
+                            <i class="fas fa-eye"></i> Посмотреть существующее слово
+                        </a>
+                        ${data.translations.length > 0 ? 
+                            `<br><strong>Переводы:</strong> ${data.translations.map(t => `${t.language}: ${t.word}`).join(', ')}` 
+                            : '<br><strong>Переводов пока нет</strong>'}
+                    `;
+                    
+                    // Предлагаем перейти к редактированию переводов
+                    setTimeout(() => {
+                        if (confirm('Хотите перейти к редактированию переводов этого слова?')) {
+                            window.location.href = data.translate_url;
+                        }
+                    }, 2000);
+                    
+                } else if (data.similar_words.length > 0) {
+                    // Найдены похожие слова
+                    notification.className = 'translation-notification';
+                    notification.innerHTML = `
+                        <strong>💡 Найдены похожие слова:</strong>
+                        <br>${data.similar_words.map(w => 
+                            `<a href="${w.url}" style="color: #fff; text-decoration: underline;">${w.word}</a>`
+                        ).join(', ')}
+                    `;
+                } else {
+                    // Слово новое
+                    notification.className = 'translation-notification';
+                    notification.innerHTML = `
+                        <strong>✅ Отлично!</strong> Слово "${word}" новое. 
+                        После создания вы сможете добавить переводы.
+                    `;
+                }
+                
+                // Добавляем уведомление после кнопки
+                checkTranslationBtn.parentNode.appendChild(notification);
+                
+                // Автоматически скрываем через 10 секунд
+                setTimeout(() => {
+                    notification.style.opacity = '0';
+                    setTimeout(() => notification.remove(), 300);
+                }, 10000);
+            })
+            .catch(error => {
+                console.error('Ошибка проверки переводов:', error);
+                this.disabled = false;
+                checkForTranslations();
+                
+                alert('Ошибка при проверке переводов. Попробуйте позже.');
+            });
+    });
+    
+    // Инициализация при загрузке страницы
+    checkForTranslations();
+});
+
+// Функции для работы с категориями и тегами
+function showCreateCategoryModal() {
+    const modal = new bootstrap.Modal(document.getElementById('createCategoryModal'));
+    modal.show();
+}
+
+function showCreateTagModal() {
+    const modal = new bootstrap.Modal(document.getElementById('createTagModal'));
+    modal.show();
+}
+
+function createCategory() {
+    const code = document.getElementById('newCategoryCode').value.trim();
+    const name = document.getElementById('newCategoryName').value.trim();
+    
+    if (!code || !name) {
+        alert('Пожалуйста, заполните обязательные поля (код и название)');
+        return;
+    }
+    
+    // Показываем индикатор загрузки
+    const btn = event.target;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Создаем...';
+    btn.disabled = true;
+    
+    // AJAX запрос для создания категории
+    fetch('/api/create-category/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify({
+            code: code,
+            name: name
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+        
+        if (data.success) {
+            // Добавляем новую категорию в select
+            const categorySelect = document.querySelector('select[name="category"]');
+            const newOption = document.createElement('option');
+            newOption.value = data.category.id;
+            newOption.textContent = data.category.code;
+            newOption.selected = true;
+            categorySelect.appendChild(newOption);
+            
+            // Закрываем модальное окно
+            const modal = bootstrap.Modal.getInstance(document.getElementById('createCategoryModal'));
+            modal.hide();
+            
+            // Очищаем форму
+            document.getElementById('createCategoryForm').reset();
+            
+            // Показываем уведомление об успехе
+            showSuccessNotification(`Категория "${data.category.code}" успешно создана!`);
+        } else {
+            alert('Ошибка: ' + (data.error || 'Не удалось создать категорию'));
+        }
+    })
+    .catch(error => {
+        console.error('Ошибка создания категории:', error);
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+        alert('Ошибка при создании категории. Попробуйте позже.');
+    });
+}
+
+function createTag() {
+    const code = document.getElementById('newTagCode').value.trim();
+    const name = document.getElementById('newTagName').value.trim();
+    const description = document.getElementById('newTagDescription').value.trim();
+    
+    if (!code || !name) {
+        alert('Пожалуйста, заполните обязательные поля (код и название)');
+        return;
+    }
+    
+    // Показываем индикатор загрузки
+    const btn = event.target;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Создаем...';
+    btn.disabled = true;
+    
+    // AJAX запрос для создания тега
+    fetch('/api/create-tag/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify({
+            code: code,
+            name: name
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+        
+        if (data.success) {
+            // Добавляем новый тег в select (если используется обычный select)
+            const tagSelect = document.querySelector('select[name="tags"]');
+            if (tagSelect) {
+                const newOption = document.createElement('option');
+                newOption.value = data.tag.id;
+                newOption.textContent = data.tag.code;
+                newOption.selected = true;
+                tagSelect.appendChild(newOption);
+            }
+            
+            // Закрываем модальное окно
+            const modal = bootstrap.Modal.getInstance(document.getElementById('createTagModal'));
+            modal.hide();
+            
+            // Очищаем форму
+            document.getElementById('createTagForm').reset();
+            
+            // Показываем уведомление об успехе
+            showSuccessNotification(`Тег "${data.tag.code}" успешно создан!`);
+        } else {
+            alert('Ошибка: ' + (data.error || 'Не удалось создать тег'));
+        }
+    })
+    .catch(error => {
+        console.error('Ошибка создания тега:', error);
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+        alert('Ошибка при создании тега. Попробуйте позже.');
+    });
+}
+
+function showSuccessNotification(message) {
+    const notification = document.createElement('div');
+    notification.className = 'translation-notification';
+    notification.innerHTML = `<strong>✅ Успех!</strong> ${message}`;
+    
+    // Добавляем уведомление в начало формы
+    const form = document.querySelector('form');
+    form.insertBefore(notification, form.firstChild);
+    
+    // Автоматически скрываем через 5 секунд
+    setTimeout(() => {
+        notification.style.opacity = '0';
+        setTimeout(() => notification.remove(), 300);
+    }, 5000);
+}
+
+// Функции для редактирования категорий
+function showEditCategoryModal() {
+    const categorySelect = document.querySelector('select[name="category"]');
+    const categoryId = categorySelect.value;
+    
+    if (!categoryId) {
+        alert('Сначала выберите категорию для редактирования');
+        return;
+    }
+    
+    // Загружаем данные категории
+    fetch(`/api/get-category/${categoryId}/`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('editCategoryId').value = data.category.id;
+                document.getElementById('editCategoryCode').value = data.category.code;
+                document.getElementById('editCategoryName').value = data.category.name;
+                
+                const modal = new bootstrap.Modal(document.getElementById('editCategoryModal'));
+                modal.show();
+            } else {
+                alert('Ошибка загрузки данных категории: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Ошибка:', error);
+            alert('Ошибка при загрузке данных категории');
+        });
+}
+
+function updateCategory() {
+    const id = document.getElementById('editCategoryId').value;
+    const code = document.getElementById('editCategoryCode').value.trim();
+    const name = document.getElementById('editCategoryName').value.trim();
+    
+    if (!code || !name) {
+        alert('Пожалуйста, заполните все поля');
+        return;
+    }
+    
+    const btn = event.target;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Сохраняем...';
+    btn.disabled = true;
+    
+    fetch(`/api/update-category/${id}/`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify({
+            code: code,
+            name: name
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+        
+        if (data.success) {
+            // Обновляем option в select
+            const categorySelect = document.querySelector('select[name="category"]');
+            const option = categorySelect.querySelector(`option[value="${id}"]`);
+            if (option) {
+                option.textContent = data.category.code;
+            }
+            
+            const modal = bootstrap.Modal.getInstance(document.getElementById('editCategoryModal'));
+            modal.hide();
+            
+            showSuccessNotification(`Категория "${data.category.code}" обновлена!`);
+        } else {
+            alert('Ошибка: ' + data.error);
+        }
+    })
+    .catch(error => {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+        console.error('Ошибка:', error);
+        alert('Ошибка при обновлении категории');
+    });
+}
+
+function deleteCategory() {
+    const id = document.getElementById('editCategoryId').value;
+    const code = document.getElementById('editCategoryCode').value;
+    
+    if (!confirm(`Вы уверены, что хотите удалить категорию "${code}"?\nВнимание: это действие нельзя отменить!`)) {
+        return;
+    }
+    
+    const btn = event.target;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Удаляем...';
+    btn.disabled = true;
+    
+    fetch(`/api/delete-category/${id}/`, {
+        method: 'DELETE',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+        
+        if (data.success) {
+            // Удаляем option из select
+            const categorySelect = document.querySelector('select[name="category"]');
+            const option = categorySelect.querySelector(`option[value="${id}"]`);
+            if (option) {
+                option.remove();
+                categorySelect.value = ''; // Сбрасываем выбор
+            }
+            
+            const modal = bootstrap.Modal.getInstance(document.getElementById('editCategoryModal'));
+            modal.hide();
+            
+            showSuccessNotification(`Категория "${code}" удалена!`);
+            
+            // Скрываем кнопку редактирования
+            document.getElementById('edit-category-btn').style.display = 'none';
+        } else {
+            alert('Ошибка: ' + data.error);
+        }
+    })
+    .catch(error => {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+        console.error('Ошибка:', error);
+        alert('Ошибка при удалении категории');
+    });
+}
+
+// Функции для управления тегами
+function showManageTagsModal() {
+    const modal = new bootstrap.Modal(document.getElementById('manageTagsModal'));
+    modal.show();
+    loadTags();
+}
+
+function loadTags() {
+    const tagsList = document.getElementById('tagsList');
+    tagsList.innerHTML = '<div class="text-center"><i class="fas fa-spinner fa-spin"></i> Загрузка...</div>';
+    
+    fetch('/api/get-tags/')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                renderTags(data.tags);
+            } else {
+                tagsList.innerHTML = '<div class="text-center text-danger">Ошибка загрузки тегов</div>';
+            }
+        })
+        .catch(error => {
+            console.error('Ошибка:', error);
+            tagsList.innerHTML = '<div class="text-center text-danger">Ошибка загрузки тегов</div>';
+        });
+}
+
+function renderTags(tags) {
+    const tagsList = document.getElementById('tagsList');
+    
+    if (tags.length === 0) {
+        tagsList.innerHTML = '<div class="text-center text-muted">Теги не найдены</div>';
+        return;
+    }
+    
+    tagsList.innerHTML = tags.map(tag => `
+        <div class="tag-item" data-tag-code="${tag.code}">
+            <div class="tag-info">
+                <div class="tag-code">${tag.code}</div>
+                <div class="tag-name">${tag.name}</div>
+            </div>
+            <div class="tag-actions">
+                <button class="btn btn-sm btn-outline-primary" onclick="editTag(${tag.id}, '${tag.code}', '${tag.name}')">
+                    <i class="fas fa-edit"></i> Изменить
+                </button>
+                <button class="btn btn-sm btn-outline-danger" onclick="deleteTag(${tag.id}, '${tag.code}')">
+                    <i class="fas fa-trash"></i> Удалить
+                </button>
+            </div>
+        </div>
+    `).join('');
+}
+
+function filterTags() {
+    const search = document.getElementById('tagSearch').value.toLowerCase();
+    const tagItems = document.querySelectorAll('.tag-item');
+    
+    tagItems.forEach(item => {
+        const code = item.dataset.tagCode.toLowerCase();
+        const name = item.querySelector('.tag-name').textContent.toLowerCase();
+        
+        if (code.includes(search) || name.includes(search)) {
+            item.style.display = 'flex';
+        } else {
+            item.style.display = 'none';
+        }
+    });
+}
+
+function editTag(id, code, name) {
+    const newCode = prompt('Новый код тега:', code);
+    if (!newCode || newCode === code) return;
+    
+    const newName = prompt('Новое название тега:', name);
+    if (!newName) return;
+    
+    fetch(`/api/update-tag/${id}/`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify({
+            code: newCode,
+            name: newName
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            loadTags(); // Перезагружаем список
+            
+            // Обновляем select тегов
+            const tagSelect = document.querySelector('select[name="tags"]');
+            if (tagSelect) {
+                const option = tagSelect.querySelector(`option[value="${id}"]`);
+                if (option) {
+                    option.textContent = data.tag.code;
+                }
+            }
+            
+            showSuccessNotification(`Тег "${data.tag.code}" обновлен!`);
+        } else {
+            alert('Ошибка: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Ошибка:', error);
+        alert('Ошибка при обновлении тега');
+    });
+}
+
+function deleteTag(id, code) {
+    if (!confirm(`Вы уверены, что хотите удалить тег "${code}"?`)) {
+        return;
+    }
+    
+    fetch(`/api/delete-tag/${id}/`, {
+        method: 'DELETE',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            loadTags(); // Перезагружаем список
+            
+            // Удаляем из select тегов
+            const tagSelect = document.querySelector('select[name="tags"]');
+            if (tagSelect) {
+                const option = tagSelect.querySelector(`option[value="${id}"]`);
+                if (option) {
+                    option.remove();
+                }
+            }
+            
+            showSuccessNotification(`Тег "${code}" удален!`);
+        } else {
+            alert('Ошибка: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Ошибка:', error);
+        alert('Ошибка при удалении тега');
+    });
+}
+
+// Показываем кнопку редактирования категории при выборе
+document.addEventListener('DOMContentLoaded', function() {
+    const categorySelect = document.querySelector('select[name="category"]');
+    const editBtn = document.getElementById('edit-category-btn');
+    
+    if (categorySelect && editBtn) {
+        categorySelect.addEventListener('change', function() {
+            if (this.value) {
+                editBtn.style.display = 'inline-block';
+            } else {
+                editBtn.style.display = 'none';
+            }
+        });
+        
+        // Проверяем начальное состояние
+        if (categorySelect.value) {
+            editBtn.style.display = 'inline-block';
+        }
+    }
+});
+</script>
 {% endblock %} 

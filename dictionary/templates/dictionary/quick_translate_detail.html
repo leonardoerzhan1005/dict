@@ -314,7 +314,7 @@ body {
     <button type="button" class="btn btn-success" onclick="submitForm()">
         <i class="fas fa-save"></i> Сохранить
     </button>
-    <a href="{% url 'dictionary:word_detail' word.id %}" class="btn btn-info">
+                            <a href="{% url 'dictionary:word_detail' word.slug %}" class="btn btn-info">
         <i class="fas fa-eye"></i> Просмотр
     </a>
 </div>

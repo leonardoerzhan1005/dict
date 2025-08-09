@@ -17,18 +17,371 @@ window.addEventListener('load', function() {
 });
 </script>
 <style>
-.tox-tinymce {
+/* Стили для страницы редактирования переводов в темной теме */
+.translation-edit-title {
+    color: #fff;
+    font-family: "Charter", "Georgia", serif;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin: 0;
+}
+
+.translation-edit-title strong {
+    color: #fff;
+    font-weight: 900;
+}
+
+/* Кнопка назад */
+.btn-translation-back {
+    background: linear-gradient(135deg, #6c757d 0%, #545b62 100%);
+    color: #fff;
+    border: 2px solid #6c757d;
+    border-radius: 0;
+    font-family: "Charter", "Georgia", serif;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 0.75rem 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.btn-translation-back:hover {
+    background: linear-gradient(135deg, #545b62 0%, #6c757d 100%);
+    color: #fff;
+    border-color: #545b62;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(108,117,125,0.4);
+}
+
+/* Карточки информации */
+.info-card {
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+    border: 1px solid #333;
+    border-radius: 0;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    color: #fff;
+    font-family: "Charter", "Georgia", serif;
+}
+
+.info-card .card-header {
+    background: linear-gradient(135deg, #000 0%, #1a1a1a 100%);
+    border-bottom: 2px solid #333;
+    color: #fff;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 1.5rem;
+}
+
+.info-card .card-header h6 {
+    margin: 0;
+    font-weight: 900;
+    color: #fff;
+}
+
+.info-card .card-header i {
+    margin-right: 0.5rem;
+    color: #fff;
+}
+
+.info-card .card-body {
+    padding: 2rem;
+    background-color: #1a1a1a;
+}
+
+.info-card h3 {
+    color: #fff;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.info-card p {
+    color: #ccc;
+    margin-bottom: 0.5rem;
+}
+
+.info-card strong {
+    color: #fff;
+    font-weight: 700;
+}
+
+/* Бейджи */
+.badge {
+    border-radius: 0;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 0.8rem;
+    padding: 0.5rem 0.8rem;
+}
+
+.badge.bg-success {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%) !important;
+    color: #fff !important;
+}
+
+.badge.bg-warning {
+    background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%) !important;
+    color: #000 !important;
+}
+
+.badge.bg-danger {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%) !important;
+    color: #fff !important;
+}
+
+.badge.bg-info {
+    background: linear-gradient(135deg, #17a2b8 0%, #138496 100%) !important;
+    color: #fff !important;
+}
+
+/* Карточки переводов */
+.translation-card {
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+    border: 1px solid #333;
+    border-radius: 0;
+    
+    color: #fff;
+    font-family: "Charter", "Georgia", serif;
+    
+}
+
+.translation-card:hover {
     
     
 }
-.tox .tox-toolbar {
-    padding-bottom: 100px;
+
+.translation-card.border-success {
+    border-color: #28a745 !important;
 }
-.tox .tox-tbtn {
-    color: white !important;
+
+.translation-card.border-warning {
+    border-color: #404040 !important;
 }
-.tox .tox-tbtn:hover {
-    background-color: rgba(255,255,255,0.2) !important;
+
+.translation-card .card-header {
+    background: linear-gradient(135deg, #000 0%, #1a1a1a 100%);
+    border-bottom: 2px solid #333;
+    color: #fff;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 1.5rem;
+}
+
+.translation-card .card-header h6 {
+    margin: 0;
+    font-weight: 900;
+    color: #fff;
+}
+
+.translation-card .card-header i {
+    margin-right: 0.5rem;
+    color: #fff;
+}
+
+.translation-card .card-body {
+    padding: 2rem;
+    background-color: #aa976d;
+    border: 1px solid #9b8b7f;
+}
+
+/* Стили для форм */
+.form-label {
+    color: #fff;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.translation-field {
+    background-color: #d4d4d4 !important;
+    border: 1px solid #444 !important;
+    border-radius: 0 !important;
+    color: #fff !important;
+    padding: 0.75rem 1rem !important;
+    font-size: 1rem !important;
+    font-family: "Charter", "Georgia", serif !important;
+    transition: all 0.3s ease !important;
+}
+
+.translation-field::placeholder {
+    color: #888 !important;
+}
+
+.translation-field:focus {
+    background-color: #333 !important;
+    border-color: #fff !important;
+    box-shadow: 0 0 0 3px rgba(255,255,255,0.1) !important;
+    outline: none !important;
+    color: #fff !important;
+}
+
+.form-text {
+    color: #ccc;
+    font-size: 0.85rem;
+    font-style: italic;
+}
+
+/* Кнопки */
+.btn-primary {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    color: #fff;
+    border: 2px solid #007bff;
+    border-radius: 0;
+    font-family: "Charter", "Georgia", serif;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 1rem 2rem;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #0056b3 0%, #007bff 100%);
+    color: #fff;
+    border-color: #0056b3;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,123,255,0.4);
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #6c757d 0%, #545b62 100%);
+    color: #fff;
+    border: 2px solid #6c757d;
+    border-radius: 0;
+    font-family: "Charter", "Georgia", serif;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 1rem 2rem;
+    transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+    background: linear-gradient(135deg, #545b62 0%, #6c757d 100%);
+    color: #fff;
+    border-color: #545b62;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(108,117,125,0.4);
+}
+
+.btn-outline-secondary {
+    
+    color: #101010;
+    border: 1px solid #2f2f2f;
+    border-radius: 0;
+    font-family: "Charter", "Georgia", serif;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+    transition: all 0.3s ease;
+}
+
+.btn-outline-secondary:hover {
+    background: linear-gradient(135deg, #6c757d 0%, #545b62 100%);
+    color: #fff;
+    border-color: #6c757d;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(108,117,125,0.4);
+}
+
+.btn i {
+    margin-right: 0.5rem;
+}
+
+/* TinyMCE контент */
+.tinymce-content {
+    background-color: #2d2d2d !important;
+    border: 1px solid #444 !important;
+    border-radius: 0 !important;
+    color: #fff !important;
+    padding: 1rem !important;
+    font-family: "Charter", "Georgia", serif !important;
+    line-height: 1.6;
+}
+
+.tinymce-content p {
+    margin-bottom: 0.5rem;
+    color: #fff;
+}
+
+.tinymce-content strong {
+    color: #fff;
+    font-weight: 700;
+}
+
+.tinymce-content em {
+    color: #ffc107;
+    font-style: italic;
+}
+
+
+
+/* Ошибки валидации */
+.is-invalid {
+    border-color: #dc3545 !important;
+    box-shadow: 0 0 0 3px rgba(220,53,69,0.1) !important;
+}
+
+/* Анимация появления */
+.info-card, .translation-card {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+.info-card:nth-child(1) { animation-delay: 0.1s; }
+.info-card:nth-child(2) { animation-delay: 0.2s; }
+.translation-card:nth-child(odd) { animation-delay: 0.3s; }
+.translation-card:nth-child(even) { animation-delay: 0.4s; }
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .info-card .card-body, .translation-card .card-body {
+        padding: 1.5rem;
+    }
+    
+    .info-card .card-header, .translation-card .card-header {
+        padding: 1rem;
+    }
+    
+    .translation-edit-title {
+        font-size: 1.5rem;
+    }
+    
+    .btn {
+        padding: 0.8rem 1.5rem;
+        font-size: 0.9rem;
+    }
+}
+
+/* Дополнительные эффекты */
+.btn:active {
+    transform: translateY(0);
+}
+
+.text-muted {
+    color: #888 !important;
+}
+
+.text-danger {
+    color: #ff6b6b !important;
 }
 </style>
 {% endblock %}
@@ -36,9 +389,9 @@ window.addEventListener('load', function() {
 {% block content %}
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>Редактирование переводов слова: <strong>{{ word.word }}</strong></h1>
+        <h1 class="translation-edit-title">Редактирование переводов слова: <strong>{{ word.word }}</strong></h1>
         <div>
-            <a href="{% url 'dictionary:word_translations_dashboard' %}" class="btn btn-secondary">
+            <a href="{% url 'dictionary:word_translations_dashboard' %}" class="btn btn-translation-back">
                 <i class="fas fa-arrow-left"></i> Назад к списку
             </a>
         </div>
@@ -47,7 +400,7 @@ window.addEventListener('load', function() {
     <!-- Информация о слове -->
     <div class="row mb-4">
         <div class="col-md-6">
-            <div class="card">
+            <div class="card info-card">
                 <div class="card-header">
                     <h6><i class="fas fa-info-circle"></i> Информация о слове</h6>
                 </div>
@@ -74,7 +427,7 @@ window.addEventListener('load', function() {
             </div>
         </div>
         <div class="col-md-6">
-            <div class="card">
+            <div class="card info-card">
                 <div class="card-header">
                     <h6><i class="fas fa-chart-bar"></i> Статистика переводов</h6>
                 </div>
@@ -95,7 +448,7 @@ window.addEventListener('load', function() {
     <form method="post" id="translation-form">
         {% csrf_token %}
         
-        <div class="card">
+        <div class="card translation-card">
             <div class="card-header">
                 <h5><i class="fas fa-language"></i> Переводы на другие языки</h5>
             </div>
@@ -103,8 +456,8 @@ window.addEventListener('load', function() {
                 <div class="row">
                     {% for language in languages %}
                     {% if language.id != word.language.id %}
-                    <div class="col-md-6 mb-3">
-                        <div class="card {% if existing_translations|get_item:language.code|get_item:'word' %}border-success{% else %}border-warning{% endif %}">
+                    <div class="col-12 mb-3">
+                        <div class="card {% if existing_translations|get_item:language.code|get_item:'word' %}border-success{% else %}border-warning{% endif %} translation-card">
                             <div class="card-header d-flex justify-content-between align-items-center">
                                 <h6 class="mb-0">
                                     <i class="fas fa-flag"></i> {{ language.name }} ({{ language.code }})
@@ -351,23 +704,4 @@ function copyOriginalMeaning() {
 }
 </script>
 
-<style>
-.card-header h6 {
-    margin: 0;
-    color: #495057;
-}
-.form-group label {
-    font-weight: 500;
-    color: #495057;
-}
-.border-success {
-    border-color: #28a745 !important;
-}
-.border-warning {
-    border-color: #ffc107 !important;
-}
-.is-invalid {
-    border-color: #dc3545 !important;
-}
-</style>
 {% endblock %} 

@@ -14,8 +14,8 @@
 }
 
 .term-card:hover {
-     
-     
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
 .term-link {
@@ -88,8 +88,8 @@
  
 .term-card {
   border: 1px solid #ecdfd9;
- 
-  
+  background-color: #fff;
+  transition: all 0.3s ease;
 }
 
 .term-card tbody,
@@ -241,7 +241,7 @@
                 {% for word in page_obj %}
                 <tr class="term-card">
                     <td>
-                        <a href="{% url 'dictionary:quick_translate_detail' word.id %}" class="term-link">
+                        <a href="{% url 'dictionary:quick_translate_detail' word.slug %}" class="term-link">
                             <strong>{{ word.word }}</strong>
                             <br>
                             <small class="text-muted">{{ word.language.name }}</small>
@@ -281,11 +281,11 @@
                     </td>
                     <td>
                         <div class="btn-group btn-group-sm">
-                            <a href="{% url 'dictionary:quick_translate_detail' word.id %}" 
+                            <a href="{% url 'dictionary:quick_translate_detail' word.slug %}" 
                                class="btn btn-outline-primary" title="Редактировать">
                                 <i class="fas fa-edit"></i>
                             </a>
-                            <a href="{% url 'dictionary:word_detail' word.id %}" 
+                            <a href="{% url 'dictionary:word_detail' word.slug %}" 
                                class="btn btn-outline-info" title="Просмотр">
                                 <i class="fas fa-eye"></i>
                             </a>

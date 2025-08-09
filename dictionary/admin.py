@@ -18,6 +18,12 @@ class TranslationDashboardAdmin(admin.ModelAdmin):
         extra_context['translation_dashboard_url'] = reverse('dictionary:translation_dashboard')
         return super().changelist_view(request, extra_context)
 
+    class Media:
+        css = {
+            'all': ('admin/css/custom_admin.css',)
+        }
+        js = ('admin/js/custom_admin.js',)
+
 @admin.register(Language)
 class LanguageAdmin(admin.ModelAdmin):
     list_display = ['code', 'name']

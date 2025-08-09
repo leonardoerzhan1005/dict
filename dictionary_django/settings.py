@@ -162,6 +162,8 @@ LOCALE_PATHS = [
     BASE_DIR / 'locale',
 ]
 
+
+
 # TinyMCE Configuration
 TINYMCE_DEFAULT_CONFIG = {
     'height': 360,
