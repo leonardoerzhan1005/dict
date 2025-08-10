@@ -383,6 +383,103 @@ window.addEventListener('load', function() {
 .text-danger {
     color: #ff6b6b !important;
 }
+
+/* Стили для табов языков */
+.nav-tabs {
+    border-bottom: 2px solid #333;
+    margin-bottom: 0;
+}
+
+.nav-tabs .nav-item {
+    margin-bottom: -2px;
+}
+
+.nav-tabs .nav-link {
+    background: linear-gradient(135deg, #2d2d2d 0%, #1a1a1a 100%);
+    border: 2px solid transparent;
+    border-bottom: 2px solid #333;
+    border-radius: 0;
+    color: #ccc;
+    font-family: "Charter", "Georgia", serif;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 1rem 1.5rem;
+    margin-right: 0.5rem;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.nav-tabs .nav-link:hover {
+    background: linear-gradient(135deg, #3d3d3d 0%, #2a2a2a 100%);
+    color: #fff;
+    border-color: #555;
+    transform: translateY(-2px);
+}
+
+.nav-tabs .nav-link.active {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    color: #fff;
+    border-color: #007bff;
+    border-bottom-color: #007bff;
+    box-shadow: 0 4px 12px rgba(0,123,255,0.3);
+}
+
+.nav-tabs .nav-link .badge {
+    font-size: 0.7rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0;
+}
+
+.tab-content {
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-top: none;
+    padding: 2rem;
+    min-height: 400px;
+}
+
+.tab-pane {
+    display: none;
+}
+
+.tab-pane.show {
+    display: block;
+}
+
+.tab-pane.active {
+    display: block;
+}
+
+/* Анимация переключения табов */
+.tab-pane.fade {
+    opacity: 0;
+    transition: opacity 0.15s linear;
+}
+
+.tab-pane.fade.show {
+    opacity: 1;
+}
+
+/* Стили для содержимого табов */
+.tab-content .card {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+}
+
+.tab-content .card-header {
+    background: linear-gradient(135deg, #000 0%, #1a1a1a 100%);
+    border-bottom: 2px solid #333;
+    padding: 1.5rem;
+}
+
+.tab-content .card-body {
+    background: #2d2d2d;
+    padding: 2rem;
+    border: 1px solid #444;
+    border-top: none;
+}
 </style>
 {% endblock %}
 
@@ -448,23 +545,63 @@ window.addEventListener('load', function() {
     <form method="post" id="translation-form">
         {% csrf_token %}
         
-        <div class="card translation-card">
-            <div class="card-header">
+        <!-- Отладочная информация -->
+        <div class="alert alert-info" id="debug-info" style="display: none;">
+            <strong>Отладочная информация:</strong>
+            <div id="debug-content"></div>
+        </div>
+        
+        <!-- Переключатель языков -->
+        <div class="card translation-card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
                 <h5><i class="fas fa-language"></i> Переводы на другие языки</h5>
+                <button type="button" class="btn btn-sm btn-outline-info" onclick="toggleDebug()">
+                    <i class="fas fa-bug"></i> Отладка
+                </button>
             </div>
             <div class="card-body">
-                <div class="row">
+                <!-- Навигация по языкам -->
+                <ul class="nav nav-tabs" id="languageTabs" role="tablist">
                     {% for language in languages %}
                     {% if language.id != word.language.id %}
-                    <div class="col-12 mb-3">
-                        <div class="card {% if existing_translations|get_item:language.code|get_item:'word' %}border-success{% else %}border-warning{% endif %} translation-card">
-                            <div class="card-header d-flex justify-content-between align-items-center">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link {% if forloop.first %}active{% endif %}" 
+                                id="tab-{{ language.code }}" 
+                                data-bs-toggle="tab" 
+                                data-bs-target="#content-{{ language.code }}" 
+                                type="button" 
+                                role="tab" 
+                                aria-controls="content-{{ language.code }}" 
+                                aria-selected="{% if forloop.first %}true{% else %}false{% endif %}">
+                            <i class="fas fa-flag"></i> {{ language.name }} ({{ language.code }})
+                            <span class="badge {% if existing_translations|get_item:language.code|get_item:'word' %}bg-success{% else %}bg-warning{% endif %} ms-2">
+                                {% if existing_translations|get_item:language.code|get_item:'word' %}✓{% else %}!{% endif %}
+                            </span>
+                        </button>
+                    </li>
+                    {% endif %}
+                    {% endfor %}
+                </ul>
+
+                <!-- Содержимое табов -->
+                <div class="tab-content mt-3" id="languageTabContent">
+                    {% for language in languages %}
+                    {% if language.id != word.language.id %}
+                    <div class="tab-pane fade {% if forloop.first %}show active{% endif %}" 
+                         id="content-{{ language.code }}" 
+                         role="tabpanel" 
+                         aria-labelledby="tab-{{ language.code }}">
+                        
+                        <div class="card {% if existing_translations|get_item:language.code|get_item:'word' %}border-success{% else %}border-warning{% endif %}">
+                            <div class="card-header">
                                 <h6 class="mb-0">
-                                    <i class="fas fa-flag"></i> {{ language.name }} ({{ language.code }})
+                                    <i class="fas fa-flag"></i> Перевод на {{ language.name }} ({{ language.code }})
+                                    {% if existing_translations|get_item:language.code|get_item:'word' %}
+                                        <span class="badge bg-success ms-2">Переведено</span>
+                                    {% else %}
+                                        <span class="badge bg-warning ms-2">Требует перевода</span>
+                                    {% endif %}
                                 </h6>
-                                <span class="badge {% if existing_translations|get_item:language.code|get_item:'word' %}bg-success{% else %}bg-warning{% endif %}">
-                                    {% if existing_translations|get_item:language.code|get_item:'word' %}Переведено{% else %}Не переведено{% endif %}
-                                </span>
                             </div>
                             <div class="card-body">
                                 <div class="form-group mb-3">
@@ -514,6 +651,21 @@ window.addEventListener('load', function() {
             </div>
         </div>
 
+        <!-- Навигация между табами -->
+        <div class="d-flex justify-content-between align-items-center mt-4 mb-4">
+            <div class="btn-group" role="group" aria-label="Навигация по языкам">
+                <button type="button" class="btn btn-outline-secondary" id="prevTabBtn" onclick="switchToPreviousTab()">
+                    <i class="fas fa-chevron-left"></i> Предыдущий язык
+                </button>
+                <button type="button" class="btn btn-outline-secondary" id="nextTabBtn" onclick="switchToNextTab()">
+                    Следующий язык <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+            <div class="text-muted">
+                <span id="currentTabInfo">Язык: <span id="currentLanguageName">-</span></span>
+            </div>
+        </div>
+
         <div class="mt-4">
             <button type="submit" class="btn btn-primary">
                 <i class="fas fa-save"></i> Сохранить все переводы
@@ -526,6 +678,90 @@ window.addEventListener('load', function() {
 </div>
 
 <script>
+// Управление табами языков
+document.addEventListener('DOMContentLoaded', function() {
+    // Инициализация табов Bootstrap
+    const triggerTabList = [].slice.call(document.querySelectorAll('#languageTabs button[data-bs-toggle="tab"]'));
+    triggerTabList.forEach(function (triggerEl) {
+        const tabTrigger = new bootstrap.Tab(triggerEl);
+        
+        triggerEl.addEventListener('click', function (event) {
+            event.preventDefault();
+            tabTrigger.show();
+            
+            // Обновляем статус активного таба
+            document.querySelectorAll('#languageTabs .nav-link').forEach(tab => {
+                tab.classList.remove('active');
+                tab.setAttribute('aria-selected', 'false');
+            });
+            triggerEl.classList.add('active');
+            triggerEl.setAttribute('aria-selected', 'true');
+            
+            // Показываем соответствующий контент
+            const targetId = triggerEl.getAttribute('data-bs-target');
+            document.querySelectorAll('.tab-pane').forEach(pane => {
+                pane.classList.remove('show', 'active');
+            });
+            document.querySelector(targetId).classList.add('show', 'active');
+            
+            console.log('Переключен на язык:', targetId);
+            
+            // Обновляем информацию о текущем табе
+            updateCurrentTabInfo();
+        });
+    });
+    
+    // Автоматическое переключение на первый таб при загрузке
+    const firstTab = document.querySelector('#languageTabs .nav-link');
+    if (firstTab) {
+        firstTab.click();
+    }
+    
+    // Обновляем информацию о текущем табе
+    updateCurrentTabInfo();
+});
+
+// Функции навигации между табами
+function switchToNextTab() {
+    const currentTab = document.querySelector('#languageTabs .nav-link.active');
+    const nextTab = currentTab.parentElement.nextElementSibling;
+    
+    if (nextTab && nextTab.querySelector('.nav-link')) {
+        nextTab.querySelector('.nav-link').click();
+    } else {
+        // Если это последний таб, переходим к первому
+        document.querySelector('#languageTabs .nav-link').click();
+    }
+}
+
+function switchToPreviousTab() {
+    const currentTab = document.querySelector('#languageTabs .nav-link.active');
+    const prevTab = currentTab.parentElement.previousElementSibling;
+    
+    if (prevTab && prevTab.querySelector('.nav-link')) {
+        prevTab.querySelector('.nav-link').click();
+    } else {
+        // Если это первый таб, переходим к последнему
+        const tabs = document.querySelectorAll('#languageTabs .nav-link');
+        tabs[tabs.length - 1].click();
+    }
+}
+
+function updateCurrentTabInfo() {
+    const currentTab = document.querySelector('#languageTabs .nav-link.active');
+    if (currentTab) {
+        const languageName = currentTab.textContent.trim().split('(')[0].trim();
+        document.getElementById('currentLanguageName').textContent = languageName;
+        
+        // Обновляем состояние кнопок навигации
+        const tabs = document.querySelectorAll('#languageTabs .nav-link');
+        const currentIndex = Array.from(tabs).findIndex(tab => tab.classList.contains('active'));
+        
+        document.getElementById('prevTabBtn').disabled = tabs.length <= 1;
+        document.getElementById('nextTabBtn').disabled = tabs.length <= 1;
+    }
+}
+
 // Инициализация TinyMCE для всех редакторов
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM загружен, инициализируем TinyMCE...');
@@ -621,13 +857,23 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Валидация формы
 document.getElementById('translation-form').addEventListener('submit', function(e) {
+    console.log('=== ФОРМА ОТПРАВЛЯЕТСЯ ===');
+    console.log('Событие submit сработало');
+    
     const requiredFields = document.querySelectorAll('input[name^="translation_word_"]');
     let hasErrors = false;
+    let errorMessages = [];
+    
+    console.log('Найдено обязательных полей:', requiredFields.length);
     
     requiredFields.forEach(field => {
+        console.log('Проверяем поле:', field.name, 'значение:', field.value);
+        
         if (!field.value.trim()) {
             field.classList.add('is-invalid');
             hasErrors = true;
+            const languageCode = field.name.split('_')[2];
+            errorMessages.push(`Перевод на язык ${languageCode} обязателен`);
         } else {
             field.classList.remove('is-invalid');
         }
@@ -635,8 +881,24 @@ document.getElementById('translation-form').addEventListener('submit', function(
     
     if (hasErrors) {
         e.preventDefault();
-        alert('Пожалуйста, заполните все обязательные поля (отмечены звездочкой)');
+        console.error('Ошибки валидации:', errorMessages);
+        alert('Пожалуйста, заполните все обязательные поля:\n' + errorMessages.join('\n'));
+        return false;
     }
+    
+    console.log('Валидация прошла успешно, отправляем форму');
+    console.log('Данные формы перед отправкой:');
+    
+    // Показываем все данные формы
+    const formData = new FormData(this);
+    for (let [key, value] of formData.entries()) {
+        console.log(`${key}: ${value}`);
+    }
+    
+    console.log('CSRF токен:', document.querySelector('[name=csrfmiddlewaretoken]').value);
+    console.log('Форма будет отправлена на:', this.action);
+    
+    return true;
 });
 
 // Обновление статуса при вводе
@@ -702,6 +964,76 @@ function copyOriginalMeaning() {
         });
     }
 }
+
+// Функции отладки
+function toggleDebug() {
+    const debugInfo = document.getElementById('debug-info');
+    const debugContent = document.getElementById('debug-content');
+    
+    if (debugInfo.style.display === 'none') {
+        debugInfo.style.display = 'block';
+        showDebugInfo();
+    } else {
+        debugInfo.style.display = 'none';
+    }
+}
+
+function showDebugInfo() {
+    const debugContent = document.getElementById('debug-content');
+    const form = document.getElementById('translation-form');
+    const formData = new FormData(form);
+    
+    let debugText = '<strong>Данные формы:</strong><br>';
+    for (let [key, value] of formData.entries()) {
+        debugText += `${key}: ${value}<br>`;
+    }
+    
+    debugText += '<br><strong>CSRF токен:</strong> ' + document.querySelector('[name=csrfmiddlewaretoken]').value;
+    debugText += '<br><strong>Метод:</strong> ' + form.method;
+    debugText += '<br><strong>Action:</strong> ' + form.action;
+    
+    debugContent.innerHTML = debugText;
+}
+
+// Добавляем обработчик для логирования всех изменений в форме
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('=== СТРАНИЦА ЗАГРУЖЕНА ===');
+    console.log('DOM полностью загружен');
+    
+    const form = document.getElementById('translation-form');
+    console.log('Форма найдена:', form ? 'ДА' : 'НЕТ');
+    if (form) {
+        console.log('Action формы:', form.action);
+        console.log('Метод формы:', form.method);
+        console.log('CSRF токен присутствует:', !!document.querySelector('[name=csrfmiddlewaretoken]'));
+    }
+    
+    // Проверяем все поля переводов
+    const translationFields = document.querySelectorAll('input[name^="translation_word_"]');
+    console.log('Найдено полей переводов:', translationFields.length);
+    translationFields.forEach((field, index) => {
+        console.log(`Поле ${index + 1}:`, field.name, 'значение:', field.value, 'язык:', field.dataset.language);
+    });
+    
+    // Проверяем существующие переводы
+    console.log('Существующие переводы из Django:');
+    // Данные о существующих переводах будут показаны через кнопку "Отладка"
+    
+    // Логируем все изменения в полях
+    form.addEventListener('change', function(e) {
+        console.log('Поле изменено:', e.target.name, 'значение:', e.target.value);
+    });
+    
+    // Логируем отправку формы
+    form.addEventListener('submit', function(e) {
+        console.log('Форма отправляется...');
+        const formData = new FormData(form);
+        console.log('Данные формы:');
+        for (let [key, value] of formData.entries()) {
+            console.log(key + ':', value);
+        }
+    });
+});
 </script>
 
 {% endblock %} 

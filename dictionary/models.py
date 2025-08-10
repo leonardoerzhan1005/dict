@@ -295,12 +295,124 @@ class Word(models.Model):
             models.Index(fields=['difficulty']),
         ]
     
+    def generate_unique_slug(self):
+        """Генерирует уникальный slug для слова"""
+        if not self.word:
+            return None
+            
+        base_slug = slugify(self.word)
+        if not base_slug:
+            base_slug = f"word-{self.pk or 'new'}"
+        
+        lang_suffix = f"-{self.language.code}"
+        slug = base_slug + lang_suffix
+        
+        # Проверяем уникальность
+        counter = 1
+        original_slug = slug
+        max_attempts = 100
+        
+        while Word.objects.filter(slug=slug).exclude(pk=self.pk).exists() and counter <= max_attempts:
+            slug = f"{original_slug}-{counter}"
+            counter += 1
+        
+        # Если не удалось найти уникальный slug
+        if counter > max_attempts:
+            import time
+            timestamp = int(time.time())
+            slug = f"{original_slug}-{timestamp}"
+            
+            if Word.objects.filter(slug=slug).exclude(pk=self.pk).exists():
+                import random
+                random_suffix = random.randint(1000, 9999)
+                slug = f"{original_slug}-{timestamp}-{random_suffix}"
+        
+        # Проверяем длину
+        if len(slug) > 150:
+            lang_suffix = f"-{self.language.code}"
+            max_base_length = 150 - len(lang_suffix)
+            base_slug = slug[:-len(lang_suffix)]
+            if max_base_length > 0:
+                slug = base_slug[:max_base_length] + lang_suffix
+            else:
+                slug = f"word-{self.pk or 'new'}{lang_suffix}"
+        
+        return slug
+    
+    def clean(self):
+        """Валидация модели перед сохранением"""
+        super().clean()
+        
+        # Проверяем, что слово не пустое
+        if not self.word or not self.word.strip():
+            raise ValidationError('Название слова не может быть пустым')
+        
+        # Проверяем, что значение не пустое
+        if not self.meaning or not self.meaning.strip():
+            raise ValidationError('Значение слова не может быть пустым')
+        
+        # Проверяем уникальность слова на том же языке
+        if self.pk:  # Для существующего слова
+            existing = Word.objects.filter(
+                word=self.word, 
+                language=self.language
+            ).exclude(pk=self.pk).first()
+        else:  # Для нового слова
+            existing = Word.objects.filter(
+                word=self.word, 
+                language=self.language
+            ).first()
+        
+        if existing:
+            raise ValidationError(
+                f'Слово "{self.word}" на языке {self.language.name} уже существует'
+            )
+    
     def save(self, *args, **kwargs):
         if not self.slug:
             # Создаем slug из слова и языка
             base_slug = slugify(self.word)
+            if not base_slug:  # Если slugify вернул пустую строку
+                base_slug = f"word-{self.pk or 'new'}"
+            
             lang_suffix = f"-{self.language.code}"
             self.slug = base_slug + lang_suffix
+            
+            # Проверяем уникальность slug и добавляем счетчик если нужно
+            counter = 1
+            original_slug = self.slug
+            max_attempts = 100  # Защита от бесконечного цикла
+            
+            while Word.objects.filter(slug=self.slug).exclude(pk=self.pk).exists() and counter <= max_attempts:
+                self.slug = f"{original_slug}-{counter}"
+                counter += 1
+            
+            # Если не удалось найти уникальный slug после max_attempts попыток
+            if counter > max_attempts:
+                # Генерируем slug с timestamp
+                import time
+                timestamp = int(time.time())
+                self.slug = f"{original_slug}-{timestamp}"
+                
+                # Проверяем, что и этот slug уникален
+                if Word.objects.filter(slug=self.slug).exclude(pk=self.pk).exists():
+                    # Последняя попытка - добавляем случайное число
+                    import random
+                    random_suffix = random.randint(1000, 9999)
+                    self.slug = f"{original_slug}-{timestamp}-{random_suffix}"
+        
+        # Дополнительная проверка длины slug
+        if len(self.slug) > 150:  # max_length для slug поля
+            # Обрезаем slug до максимальной длины, сохраняя суффикс языка
+            lang_suffix = f"-{self.language.code}"
+            max_base_length = 150 - len(lang_suffix)
+            base_slug = self.slug[:-len(lang_suffix)]
+            if max_base_length > 0:
+                self.slug = base_slug[:max_base_length] + lang_suffix
+            else:
+                # Если даже с суффиксом языка slug слишком длинный
+                self.slug = f"word-{self.pk or 'new'}{lang_suffix}"
+        
         super().save(*args, **kwargs)
     
     def __str__(self):

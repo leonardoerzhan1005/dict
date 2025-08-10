@@ -29,6 +29,7 @@ urlpatterns = [
     path('api/check-translations/', views.check_translations_api, name='check_translations_api'),
     path('api/create-category/', views.create_category_api, name='create_category_api'),
     path('api/create-tag/', views.create_tag_api, name='create_tag_api'),
+    path('api/change-word-status/<slug:slug>/', views.change_word_status, name='change_word_status'),
     path('api/get-category/<int:category_id>/', api_views.get_category_api, name='get_category_api'),
     path('api/update-category/<int:category_id>/', api_views.update_category_api, name='update_category_api'),
     path('api/delete-category/<int:category_id>/', api_views.delete_category_api, name='delete_category_api'),
@@ -48,8 +49,14 @@ urlpatterns = [
     # Управление переводами слов
     path('word-translations/', views.word_translations_dashboard, name='word_translations_dashboard'),
     path('word-translations/edit/<slug:slug>/', views.word_translation_edit, name='word_translation_edit'),
+    # Альтернативный URL для удобства
+    path('word/translations/edit/<slug:slug>/', views.word_translation_edit, name='word_translations_edit_alt'),
     path('word-translations/bulk/', views.bulk_word_translation, name='bulk_word_translation'),
     path('translation-search/', views.translation_search, name='translation_search'),
+    
+    # Тестовый endpoint для проверки сохранения переводов
+    path('test-translation/<slug:slug>/', views.test_translation_save, name='test_translation_save'),
+    path('test-translation-page/<slug:slug>/', views.test_translation_page, name='test_translation_page'),
     
     # Мультиперевод
     path('multi-translate/<slug:slug>/', views.multi_translate_word, name='multi_translate_word'),

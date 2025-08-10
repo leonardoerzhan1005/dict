@@ -4,23 +4,21 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.http import JsonResponse
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
+from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
 from django.db import transaction
 from django.db.models import Q, Count
 from django.core.paginator import Paginator
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
-from .models import Category, CategoryTranslation, Tag, TagTranslation, Language, InterfaceTranslation, Word, Translation, CustomUser
-from .forms import CustomUserCreationForm, WordForm, WordTranslationForm
-import json
-import os
-import uuid
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from django.contrib.admin.views.decorators import staff_member_required
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 from django.conf import settings
+from .models import Category, CategoryTranslation, Tag, TagTranslation, Language, InterfaceTranslation, Word, Translation, CustomUser
+from .forms import CustomUserCreationForm, WordForm, WordTranslationForm, WordStatusChangeForm
+import json
+import os
+import uuid
 from PIL import Image
 import mimetypes
 
@@ -42,8 +40,11 @@ def home(request):
     except ValueError:
         category_id = None
     
-    # Базовый queryset - используем новый менеджер
-    words = Word.objects.published()
+    # Базовый queryset - администраторы видят все слова, обычные пользователи - только одобренные
+    if request.user.is_authenticated and (request.user.is_staff or request.user.is_superuser):
+        words = Word.objects.filter(is_deleted=False)
+    else:
+        words = Word.objects.published()
     
     # Фильтр по языку - используем новый метод
     if language_code:
@@ -97,17 +98,25 @@ def home(request):
         'current_language': language_code,
         'current_category': category_id,
         'user_language': user_language,
+        'is_admin': request.user.is_authenticated and (request.user.is_staff or request.user.is_superuser),
         # Дополнительная информация для редактора (только для персонала)
         'recent_words': Word.objects.recent(days=7)[:5] if request.user.is_authenticated and request.user.is_staff else None,
         'words_without_translations': Word.objects.without_translations()[:5] if request.user.is_authenticated and request.user.is_staff else None,
         'total_published_words': Word.objects.published().count(),
+        'total_all_words': Word.objects.filter(is_deleted=False).count() if request.user.is_authenticated and (request.user.is_staff or request.user.is_superuser) else None,
     }
     
     return render(request, 'dictionary/home.html', context)
 
 def word_detail(request, slug):
     """Детальная страница слова с переводами"""
-    word = get_object_or_404(Word, slug=slug, status='approved', is_deleted=False)
+    # Администраторы видят все слова (включая pending), обычные пользователи - только одобренные
+    if request.user.is_authenticated and (request.user.is_staff or request.user.is_superuser):
+        # Для администраторов - показываем все слова кроме удаленных
+        word = get_object_or_404(Word, slug=slug, is_deleted=False)
+    else:
+        # Для обычных пользователей - только одобренные слова
+        word = get_object_or_404(Word, slug=slug, status='approved', is_deleted=False)
     
     # Получить все переводы слова
     translations = word.from_translations.all().select_related('to_word', 'to_word__language')
@@ -140,6 +149,7 @@ def word_detail(request, slug):
         'examples': examples,
         'tags': tags_with_translations,
         'user_language': user_language,
+        'is_admin': request.user.is_authenticated and (request.user.is_staff or request.user.is_superuser),
     }
     
     return render(request, 'dictionary/word_detail.html', context)
@@ -574,57 +584,114 @@ def word_translations_dashboard(request):
 @staff_member_required
 def word_translation_edit(request, slug):
     """Редактирование переводов конкретного слова"""
+    print(f"=== word_translation_edit вызван для slug: {slug} ===")
+    print(f"Метод запроса: {request.method}")
+    print(f"Пользователь: {request.user}")
+    print(f"CSRF токен в cookies: {request.META.get('CSRF_COOKIE', 'НЕ НАЙДЕН')}")
+    
     word = get_object_or_404(Word, slug=slug, is_deleted=False)
+    print(f"Найдено слово: {word.word} (язык: {word.language.code})")
+    
     languages = Language.objects.all().order_by('code')
+    print(f"Доступные языки: {[f'{l.code}:{l.name}' for l in languages]}")
     
     if request.method == 'POST':
-        with transaction.atomic():
-            # Обработка переводов
-            for language in languages:
-                if language.id != word.language.id:  # Не переводим на тот же язык
-                    translation_word = request.POST.get(f'translation_word_{language.code}')
-                    translation_meaning = request.POST.get(f'translation_meaning_{language.code}')
-                    note = request.POST.get(f'note_{language.code}', '')
-                    
-                    if translation_word:  # Сохраняем только если есть перевод
-                        # Создаем или получаем слово на целевом языке
-                        target_word, created = Word.objects.get_or_create(
-                            word=translation_word,
-                            language=language,
-                            category=word.category,
-                            defaults={
-                                'meaning': translation_meaning or '',
-                                'status': 'pending',
-                                'is_deleted': False
-                            }
-                        )
-                        
-                        if not created:
-                            target_word.meaning = translation_meaning or ''
-                            target_word.save()
-                        
-                        # Создаем или обновляем перевод
-                        translation, created = Translation.objects.get_or_create(
-                            from_word=word,
-                            to_word=target_word,
-                            defaults={'note': note, 'status': 'pending', 'order': 1}
-                        )
-                        
-                        if not created:
-                            translation.note = note
-                            translation.save()
+        # Отладочная информация
+        print(f"POST запрос получен для слова {word.word}")
+        print(f"POST данные: {request.POST}")
+        print(f"CSRF токен: {request.POST.get('csrfmiddlewaretoken', 'НЕ НАЙДЕН')}")
+        print(f"Все заголовки: {dict(request.headers)}")
         
-        messages.success(request, f'Переводы для слова "{word.word}" обновлены')
+        try:
+            with transaction.atomic():
+                created_count = 0
+                updated_count = 0
+                
+                # Обработка переводов
+                for language in languages:
+                    if language.id != word.language.id:  # Не переводим на тот же язык
+                        translation_word = request.POST.get(f'translation_word_{language.code}', '').strip()
+                        translation_meaning = request.POST.get(f'translation_meaning_{language.code}', '').strip()
+                        note = request.POST.get(f'note_{language.code}', '').strip()
+                        
+                        print(f"Обрабатываем язык {language.code}: слово='{translation_word}', значение='{translation_meaning[:50]}...'")
+                        
+                        if translation_word:  # Сохраняем только если есть перевод
+                            try:
+                                # Создаем или получаем слово на целевом языке
+                                target_word, created = Word.objects.get_or_create(
+                                    word=translation_word,
+                                    language=language,
+                                    defaults={
+                                        'meaning': translation_meaning or '',
+                                        'status': 'pending',
+                                        'is_deleted': False,
+                                        'category': word.category,
+                                        'created_by': request.user
+                                    }
+                                )
+                                
+                                if not created:
+                                    # Обновляем существующее слово
+                                    target_word.meaning = translation_meaning or target_word.meaning
+                                    target_word.category = word.category
+                                    target_word.save()
+                                    updated_count += 1
+                                    print(f"Обновлено существующее слово {target_word.word}")
+                                else:
+                                    created_count += 1
+                                    print(f"Создано новое слово {target_word.word}")
+                                
+                                # Создаем или обновляем перевод
+                                translation, trans_created = Translation.objects.get_or_create(
+                                    from_word=word,
+                                    to_word=target_word,
+                                    defaults={
+                                        'note': note, 
+                                        'status': 'pending', 
+                                        'order': 1
+                                    }
+                                )
+                                
+                                if not trans_created:
+                                    # Обновляем существующий перевод
+                                    translation.note = note
+                                    translation.status = 'pending'
+                                    translation.save()
+                                    print(f"Обновлен перевод {word.word} -> {target_word.word}")
+                                else:
+                                    print(f"Создан новый перевод {word.word} -> {target_word.word}")
+                                
+                            except Exception as e:
+                                # Логируем ошибку для конкретного языка
+                                print(f"Ошибка при обработке языка {language.code}: {str(e)}")
+                                continue
+                        else:
+                            print(f"Пропускаем язык {language.code} - нет перевода")
+                
+                print(f"Итого: создано {created_count}, обновлено {updated_count}")
+                
+                if created_count > 0 or updated_count > 0:
+                    messages.success(request, f'Сохранено {created_count} новых переводов и обновлено {updated_count} существующих для слова "{word.word}"')
+                else:
+                    messages.info(request, 'Изменения сохранены')
+                    
+        except Exception as e:
+            messages.error(request, f'Ошибка при сохранении переводов: {str(e)}')
+            print(f"Ошибка в word_translation_edit: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            return render(request, 'dictionary/word_translation_edit.html', {
+                'word': word,
+                'languages': languages,
+                'existing_translations': get_existing_translations(word),
+            })
+        
         return redirect('dictionary:word_translations_dashboard')
     
     # Получить существующие переводы
-    existing_translations = {}
-    for translation in word.from_translations.all():
-        existing_translations[translation.to_word.language.code] = {
-            'word': translation.to_word.word,
-            'meaning': translation.to_word.meaning,
-            'note': translation.note
-        }
+    existing_translations = get_existing_translations(word)
+    print(f"Существующие переводы: {existing_translations}")
     
     context = {
         'word': word,
@@ -632,6 +699,79 @@ def word_translation_edit(request, slug):
         'existing_translations': existing_translations,
     }
     return render(request, 'dictionary/word_translation_edit.html', context)
+
+def get_existing_translations(word):
+    """Вспомогательная функция для получения существующих переводов"""
+    existing_translations = {}
+    for translation in word.from_translations.all():
+        existing_translations[translation.to_word.language.code] = {
+            'word': translation.to_word.word,
+            'meaning': translation.to_word.meaning,
+            'note': translation.note
+        }
+    return existing_translations
+
+@csrf_exempt
+def test_translation_save(request, slug):
+    """Тестовый view для проверки сохранения переводов (без декоратора staff_member_required)"""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Только POST запросы'}, status=400)
+    
+    try:
+        word = get_object_or_404(Word, slug=slug, is_deleted=False)
+        print(f"Тестовый POST запрос для слова {word.word}")
+        print(f"POST данные: {request.POST}")
+        
+        # Простая обработка одного перевода
+        translation_word = request.POST.get('translation_word', '').strip()
+        translation_meaning = request.POST.get('translation_meaning', '').strip()
+        language_code = request.POST.get('language_code', 'en')
+        
+        if translation_word and language_code:
+            language = Language.objects.get(code=language_code)
+            
+            # Создаем или получаем слово
+            target_word, created = Word.objects.get_or_create(
+                word=translation_word,
+                language=language,
+                defaults={
+                    'meaning': translation_meaning or '',
+                    'status': 'pending',
+                    'is_deleted': False,
+                    'category': word.category
+                }
+            )
+            
+            if not created:
+                target_word.meaning = translation_meaning or target_word.meaning
+                target_word.save()
+            
+            # Создаем или обновляем перевод
+            translation, trans_created = Translation.objects.get_or_create(
+                from_word=word,
+                to_word=target_word,
+                defaults={'status': 'pending', 'order': 1}
+            )
+            
+            return JsonResponse({
+                'success': True,
+                'message': f'Перевод сохранен: {word.word} -> {target_word.word}',
+                'created': created,
+                'translation_created': trans_created
+            })
+        else:
+            return JsonResponse({'error': 'Недостаточно данных'}, status=400)
+            
+    except Exception as e:
+        print(f"Ошибка в test_translation_save: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({'error': str(e)}, status=500)
+
+def test_translation_page(request, slug):
+    """Страница для тестирования сохранения переводов"""
+    word = get_object_or_404(Word, slug=slug, is_deleted=False)
+    return render(request, 'dictionary/test_translation.html', {'word': word})
 
 @staff_member_required
 def bulk_word_translation(request):
@@ -1235,12 +1375,117 @@ def word_create(request):
     if request.method == 'POST':
         form = WordForm(request.POST)
         if form.is_valid():
-            word = form.save(commit=False)
-            word.created_by = request.user
-            word.save()
-            form.save_m2m()  # Сохраняем many-to-many поля (tags)
-            messages.success(request, f'Слово "{word.word}" успешно создано')
-            return redirect('dictionary:word_detail', slug=word.slug)
+            try:
+                word = form.save(commit=False)
+                word.created_by = request.user
+                
+                # Проверяем, не существует ли уже слово с таким же названием на том же языке
+                existing_word = Word.objects.filter(
+                    word=word.word, 
+                    language=word.language
+                ).first()
+                
+                if existing_word:
+                    messages.error(request, f'Слово "{word.word}" на языке {word.language.name} уже существует')
+                    context = {
+                        'form': form,
+                        'title': 'Создание нового слова',
+                        'submit_text': 'Создать слово',
+                        'recent_words': Word.objects.recent(days=7)[:5],
+                        'words_without_translations': Word.objects.without_translations()[:5],
+                    }
+                    return render(request, 'dictionary/word_form.html', context)
+                
+                # Дополнительная валидация перед сохранением
+                if not word.word.strip():
+                    messages.error(request, 'Название слова не может быть пустым')
+                    context = {
+                        'form': form,
+                        'title': 'Создание нового слова',
+                        'submit_text': 'Создать слово',
+                        'recent_words': Word.objects.recent(days=7)[:5],
+                        'words_without_translations': Word.objects.without_translations()[:5],
+                    }
+                    return render(request, 'dictionary/word_form.html', context)
+                
+                if not word.meaning.strip():
+                    messages.error(request, 'Значение слова не может быть пустым')
+                    context = {
+                        'form': form,
+                        'title': 'Создание нового слова',
+                        'submit_text': 'Создать слово',
+                        'recent_words': Word.objects.recent(days=7)[:5],
+                        'words_without_translations': Word.objects.without_translations()[:5],
+                    }
+                    return render(request, 'dictionary/word_form.html', context)
+                
+                # Сохраняем слово
+                word.save()
+                
+                # Сохраняем many-to-many поля (tags)
+                try:
+                    form.save_m2m()
+                except Exception as m2m_error:
+                    # Если не удалось сохранить tags, удаляем слово и показываем ошибку
+                    word.delete()
+                    messages.error(request, f'Ошибка при сохранении тегов: {str(m2m_error)}')
+                    print(f"Ошибка сохранения тегов: {m2m_error}")
+                    context = {
+                        'form': form,
+                        'title': 'Создание нового слова',
+                        'submit_text': 'Создать слово',
+                        'recent_words': Word.objects.recent(days=7)[:5],
+                        'words_without_translations': Word.objects.without_translations()[:5],
+                    }
+                    return render(request, 'dictionary/word_form.html', context)
+                
+                # Проверяем, что slug был успешно сгенерирован
+                if not word.slug:
+                    messages.error(request, 'Ошибка: не удалось сгенерировать уникальный slug для слова')
+                    print(f"Ошибка: slug не был сгенерирован для слова {word.word}")
+                    word.delete()
+                    context = {
+                        'form': form,
+                        'title': 'Создание нового слова',
+                        'submit_text': 'Создать слово',
+                        'recent_words': Word.objects.recent(days=7)[:5],
+                        'words_without_translations': Word.objects.without_translations()[:5],
+                    }
+                    return render(request, 'dictionary/word_form.html', context)
+                
+                # Проверяем уникальность slug
+                slug_exists = Word.objects.filter(slug=word.slug).exclude(pk=word.pk).exists()
+                if slug_exists:
+                    messages.error(request, f'Ошибка: slug "{word.slug}" уже существует. Попробуйте изменить название слова.')
+                    print(f"Ошибка: дублирующийся slug {word.slug} для слова {word.word}")
+                    word.delete()
+                    context = {
+                        'form': form,
+                        'title': 'Создание нового слова',
+                        'submit_text': 'Создать слово',
+                        'recent_words': Word.objects.recent(days=7)[:5],
+                        'words_without_translations': Word.objects.without_translations()[:5],
+                    }
+                    return render(request, 'dictionary/word_form.html', context)
+                
+                messages.success(request, f'Слово "{word.word}" успешно создано со slug: {word.slug}')
+                print(f"Успешно создано слово: {word.word} (ID: {word.pk}, slug: {word.slug})")
+                return redirect('dictionary:word_detail', slug=word.slug)
+                
+            except Exception as e:
+                messages.error(request, f'Ошибка при создании слова: {str(e)}')
+                print(f"Критическая ошибка создания слова: {e}")
+                import traceback
+                traceback.print_exc()
+                
+                context = {
+                    'form': form,
+                    'title': 'Создание нового слова',
+                    'submit_text': 'Создать слово',
+                    'recent_words': Word.objects.recent(days=7)[:5],
+                    'words_without_translations': Word.objects.without_translations()[:5],
+                }
+                return render(request, 'dictionary/word_form.html', context)
     else:
         form = WordForm()
     
@@ -1261,9 +1506,97 @@ def word_edit(request, slug):
     if request.method == 'POST':
         form = WordForm(request.POST, instance=word)
         if form.is_valid():
-            word = form.save()
-            messages.success(request, f'Слово "{word.word}" успешно обновлено')
-            return redirect('dictionary:word_detail', slug=word.slug)
+            try:
+                # Проверяем, не изменился ли язык слова
+                old_language = word.language
+                new_language = form.cleaned_data['language']
+                
+                # Проверяем, не существует ли уже слово с таким же названием на новом языке
+                if old_language != new_language:
+                    existing_word = Word.objects.filter(
+                        word=form.cleaned_data['word'], 
+                        language=new_language
+                    ).exclude(pk=word.pk).first()
+                    
+                    if existing_word:
+                        messages.error(request, f'Слово "{form.cleaned_data["word"]}" на языке {new_language.name} уже существует')
+                        context = {
+                            'form': form,
+                            'word': word,
+                            'title': f'Редактирование слова "{word.word}"',
+                            'submit_text': 'Сохранить изменения',
+                            'recent_words': Word.objects.recent(days=7)[:5],
+                            'words_without_translations': Word.objects.without_translations()[:5],
+                        }
+                        return render(request, 'dictionary/word_form.html', context)
+                
+                # Сохраняем слово
+                word = form.save()
+                
+                # Сохраняем many-to-many поля (tags)
+                try:
+                    form.save_m2m()
+                except Exception as m2m_error:
+                    messages.error(request, f'Ошибка при сохранении тегов: {str(m2m_error)}')
+                    print(f"Ошибка сохранения тегов при редактировании: {m2m_error}")
+                    context = {
+                        'form': form,
+                        'word': word,
+                        'title': f'Редактирование слова "{word.word}"',
+                        'submit_text': 'Сохранить изменения',
+                        'recent_words': Word.objects.recent(days=7)[:5],
+                        'words_without_translations': Word.objects.without_translations()[:5],
+                    }
+                    return render(request, 'dictionary/word_form.html', context)
+                
+                # Проверяем, что slug был успешно сгенерирован
+                if not word.slug:
+                    messages.error(request, 'Ошибка: не удалось сгенерировать уникальный slug для слова')
+                    print(f"Ошибка: slug не был сгенерирован при редактировании слова {word.word}")
+                    context = {
+                        'form': form,
+                        'word': word,
+                        'title': f'Редактирование слова "{word.word}"',
+                        'submit_text': 'Сохранить изменения',
+                        'recent_words': Word.objects.recent(days=7)[:5],
+                        'words_without_translations': Word.objects.without_translations()[:5],
+                    }
+                    return render(request, 'dictionary/word_form.html', context)
+                
+                # Проверяем уникальность slug
+                slug_exists = Word.objects.filter(slug=word.slug).exclude(pk=word.pk).exists()
+                if slug_exists:
+                    messages.error(request, f'Ошибка: slug "{word.slug}" уже существует. Попробуйте изменить название слова.')
+                    print(f"Ошибка: дублирующийся slug {word.slug} при редактировании слова {word.word}")
+                    context = {
+                        'form': form,
+                        'word': word,
+                        'title': f'Редактирование слова "{word.word}"',
+                        'submit_text': 'Сохранить изменения',
+                        'recent_words': Word.objects.recent(days=7)[:5],
+                        'words_without_translations': Word.objects.without_translations()[:5],
+                    }
+                    return render(request, 'dictionary/word_form.html', context)
+                
+                messages.success(request, f'Слово "{word.word}" успешно обновлено. Новый slug: {word.slug}')
+                print(f"Успешно обновлено слово: {word.word} (ID: {word.pk}, slug: {word.slug})")
+                return redirect('dictionary:word_detail', slug=word.slug)
+                
+            except Exception as e:
+                messages.error(request, f'Ошибка при обновлении слова: {str(e)}')
+                print(f"Критическая ошибка обновления слова: {e}")
+                import traceback
+                traceback.print_exc()
+                
+                context = {
+                    'form': form,
+                    'word': word,
+                    'title': f'Редактирование слова "{word.word}"',
+                    'submit_text': 'Сохранить изменения',
+                    'recent_words': Word.objects.recent(days=7)[:5],
+                    'words_without_translations': Word.objects.without_translations()[:5],
+                }
+                return render(request, 'dictionary/word_form.html', context)
     else:
         form = WordForm(instance=word)
     
@@ -1692,5 +2025,46 @@ def create_tag_api(request):
         
     except json.JSONDecodeError:
         return JsonResponse({'error': 'Некорректный JSON'}, status=400)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@staff_member_required
+def change_word_status(request, slug):
+    """Изменение статуса слова администратором"""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Метод не поддерживается'}, status=405)
+    
+    try:
+        word = get_object_or_404(Word, slug=slug, is_deleted=False)
+        new_status = request.POST.get('status')
+        
+        if new_status not in dict(Word.STATUS_CHOICES):
+            return JsonResponse({'error': 'Некорректный статус'}, status=400)
+        
+        old_status = word.status
+        word.status = new_status
+        word.save()
+        
+        # Логируем изменение
+        WordChangeLog.objects.create(
+            word=word,
+            user=request.user,
+            action='status_changed',
+            old_value=old_status,
+            new_value=new_status,
+            change_type='manual',
+            comment=f'Статус изменен с {dict(Word.STATUS_CHOICES)[old_status]} на {dict(Word.STATUS_CHOICES)[new_status]}'
+        )
+        
+        return JsonResponse({
+            'success': True,
+            'new_status': new_status,
+            'new_status_display': dict(Word.STATUS_CHOICES)[new_status],
+            'message': f'Статус слова изменен на "{dict(Word.STATUS_CHOICES)[new_status]}"'
+        })
+        
+    except Word.DoesNotExist:
+        return JsonResponse({'error': 'Слово не найдено'}, status=404)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)

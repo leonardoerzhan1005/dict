@@ -62,11 +62,16 @@
                                         {% endfor %}
                                     </div>
                                 {% endif %}
-                                <!-- Кнопка для быстрого перехода к переводу -->
+                                <!-- Кнопки для работы с переводами -->
                                 <div class="mt-2">
                                     <button type="button" class="btn btn-sm btn-outline-info" id="check-translation-btn" style="display: none;">
                                         <i class="fas fa-language"></i> Проверить переводы на этот язык
                                     </button>
+                                    {% if word %}
+                                    <a href="{% url 'dictionary:word_translations_edit_alt' word.slug %}" class="btn btn-sm btn-outline-warning d-block mt-1">
+                                        <i class="fas fa-edit"></i> Редактировать переводы на все языки
+                                    </a>
+                                    {% endif %}
                                 </div>
                             </div>
                         </div>

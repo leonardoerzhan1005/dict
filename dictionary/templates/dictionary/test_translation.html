@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Тест сохранения переводов</title>
+    <meta charset="utf-8">
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .form-group { margin: 10px 0; }
+        label { display: inline-block; width: 120px; }
+        input, textarea { width: 300px; padding: 5px; }
+        button { padding: 10px 20px; background: #007bff; color: white; border: none; cursor: pointer; }
+        .result { margin-top: 20px; padding: 10px; border: 1px solid #ccc; }
+        .success { background: #d4edda; border-color: #c3e6cb; }
+        .error { background: #f8d7da; border-color: #f5c6cb; }
+    </style>
+</head>
+<body>
+    <h1>Тест сохранения переводов</h1>
+    
+    <form id="testForm">
+        <div class="form-group">
+            <label>Слово для перевода:</label>
+            <input type="text" id="wordSlug" value="{{ word.slug }}" readonly>
+        </div>
+        
+        <div class="form-group">
+            <label>Язык перевода:</label>
+            <select id="languageCode">
+                <option value="en">English</option>
+                <option value="kk">Қазақша</option>
+                <option value="tr">Türkçe</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label>Перевод слова:</label>
+            <input type="text" id="translationWord" placeholder="Введите перевод">
+        </div>
+        
+        <div class="form-group">
+            <label>Значение:</label>
+            <textarea id="translationMeaning" rows="3" placeholder="Введите значение"></textarea>
+        </div>
+        
+        <button type="submit">Сохранить перевод</button>
+    </form>
+    
+    <div id="result" class="result" style="display: none;"></div>
+    
+    <script>
+        document.getElementById('testForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData();
+            formData.append('translation_word', document.getElementById('translationWord').value);
+            formData.append('translation_meaning', document.getElementById('translationMeaning').value);
+            formData.append('language_code', document.getElementById('languageCode').value);
+            
+            fetch('/test-translation/{{ word.slug }}/', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                const resultDiv = document.getElementById('result');
+                resultDiv.style.display = 'block';
+                
+                if (data.success) {
+                    resultDiv.className = 'result success';
+                    resultDiv.innerHTML = '<strong>Успех!</strong> ' + data.message;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = '<strong>Ошибка!</strong> ' + data.error;
+                }
+            })
+            .catch(error => {
+                const resultDiv = document.getElementById('result');
+                resultDiv.style.display = 'block';
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = '<strong>Ошибка сети:</strong> ' + error.message;
+            });
+        });
+    </script>
+</body>
+</html>

@@ -105,7 +105,12 @@
             {% if current_query %}
                 <div class="results-header">
                     <h4 class="results-title">Результаты поиска для "{{ current_query }}"</h4>
-                    <div class="results-count">Найдено {{ words.paginator.count }} слов</div>
+                    <div class="results-count">
+                        Найдено {{ words.paginator.count }} слов
+                        {% if is_admin and total_all_words %}
+                            <small class="text-muted">(всего в системе: {{ total_all_words }})</small>
+                        {% endif %}
+                    </div>
                 </div>
             {% endif %}
             
@@ -122,9 +127,16 @@
                                                 {{ word.word }}
                                             </h5>
                                         </a>
-                                        <span class="language-badge">
-                                            {{ word.language.code|upper }}
-                                        </span>
+                                        <div class="d-flex align-items-center">
+                                            {% if is_admin and word.status != 'approved' %}
+                                                <span class="badge {% if word.status == 'pending' %}bg-warning{% else %}bg-danger{% endif %} me-2" style="font-size: 0.7rem;">
+                                                    {{ word.get_status_display }}
+                                                </span>
+                                            {% endif %}
+                                            <span class="language-badge">
+                                                {{ word.language.code|upper }}
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="word-card-body">

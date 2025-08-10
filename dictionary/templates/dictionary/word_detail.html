@@ -21,6 +21,38 @@
                     <div class="word-definition">
                         <h2 class="word-title">{{ word.word }}</h2>
                         
+                        <!-- Статус слова для администраторов -->
+                        {% if is_admin %}
+                            <div class="word-status mb-3">
+                                <div class="d-flex align-items-center gap-3">
+                                    <span class="badge {% if word.status == 'approved' %}bg-success{% elif word.status == 'pending' %}bg-warning{% else %}bg-danger{% endif %}">
+                                        Статус: {{ word.get_status_display }}
+                                    </span>
+                                    
+                                    <!-- Форма изменения статуса -->
+                                    <form method="POST" action="{% url 'dictionary:change_word_status' word.slug %}" 
+                                          class="d-flex align-items-center gap-2" 
+                                          id="status-change-form">
+                                        {% csrf_token %}
+                                        <select name="status" class="form-select form-select-sm" style="width: auto;">
+                                            {% for value, label in word.STATUS_CHOICES %}
+                                                <option value="{{ value }}" {% if value == word.status %}selected{% endif %}>
+                                                    {{ label }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                        <button type="submit" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-save"></i> Изменить
+                                        </button>
+                                    </form>
+                                </div>
+                                
+                                {% if word.status == 'pending' %}
+                                    <small class="text-muted d-block mt-1">Слово находится на проверке и не видно обычным пользователям</small>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                        
                         <div class="word-meta">
                             <span class="language-badge">{{ word.language.name }} ({{ word.language.code }})</span>
                             {% if word.category %}
@@ -161,4 +193,96 @@
     </div>
 </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const statusForm = document.getElementById('status-change-form');
+    if (statusForm) {
+        statusForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            
+            // Показываем индикатор загрузки
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Сохранение...';
+            submitBtn.disabled = true;
+            
+            fetch(this.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Обновляем статус на странице
+                    const statusBadge = document.querySelector('.word-status .badge');
+                    if (statusBadge) {
+                        statusBadge.textContent = `Статус: ${data.new_status_display}`;
+                        statusBadge.className = 'badge ' + 
+                            (data.new_status === 'approved' ? 'bg-success' : 
+                             data.new_status === 'pending' ? 'bg-warning' : 'bg-danger');
+                    }
+                    
+                    // Обновляем статус в сайдбаре
+                    const sidebarStatus = document.querySelector('.sidebar .info-value .category-badge');
+                    if (sidebarStatus) {
+                        sidebarStatus.textContent = data.new_status_display;
+                    }
+                    
+                    // Показываем сообщение об успехе
+                    showMessage(data.message, 'success');
+                    
+                    // Обновляем предупреждение о pending статусе
+                    const pendingWarning = document.querySelector('.word-status small');
+                    if (pendingWarning) {
+                        if (data.new_status === 'pending') {
+                            pendingWarning.style.display = 'block';
+                        } else {
+                            pendingWarning.style.display = 'none';
+                        }
+                    }
+                } else {
+                    showMessage(data.error || 'Ошибка при изменении статуса', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showMessage('Произошла ошибка при изменении статуса', 'error');
+            })
+            .finally(() => {
+                // Восстанавливаем кнопку
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            });
+        });
+    }
+    
+    function showMessage(message, type) {
+        // Создаем уведомление
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show position-fixed`;
+        alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+        alertDiv.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        document.body.appendChild(alertDiv);
+        
+        // Автоматически скрываем через 5 секунд
+        setTimeout(() => {
+            if (alertDiv.parentNode) {
+                alertDiv.remove();
+            }
+        }, 5000);
+    }
+});
+</script>
 {% endblock %} 

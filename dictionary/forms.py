@@ -119,6 +119,21 @@ class WordForm(forms.ModelForm):
         
         return cleaned_data
 
+class WordStatusChangeForm(forms.Form):
+    """Форма для изменения статуса слова"""
+    status = forms.ChoiceField(
+        choices=Word.STATUS_CHOICES,
+        widget=forms.Select(attrs={'class': 'form-select form-select-sm'}),
+        label='Статус'
+    )
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['status'].widget.attrs.update({
+            'class': 'form-select form-select-sm',
+            'style': 'width: auto;'
+        })
+
 class WordTranslationForm(forms.Form):
     """Форма для перевода слов"""
     def __init__(self, languages, *args, **kwargs):
