@@ -67,14 +67,14 @@
                         </div>
                         
                         <!-- Дополнительная информация -->
-                        {% if word.pronunciation or word.difficulty or tags %}
+                                                        {% if word.pronunciation or word.difficulty or tags %}
                             <div class="additional-info">
                                 {% if word.pronunciation %}
                                     <h6>Произношение</h6>
                                     <p>{{ word.pronunciation }}</p>
                                 {% endif %}
                                 
-                                {% if word.difficulty %}
+                                {% if word.difficulty and word.difficulty != 'none' and word.difficulty != 'hidden' %}
                                     <h6>Сложность</h6>
                                     <p>{{ word.get_difficulty_display }}</p>
                                 {% endif %}
@@ -83,7 +83,9 @@
                                     <h6>Теги</h6>
                                     <p>
                                         {% for tag_data in tags %}
-                                            <span class="category-badge me-1">{{ tag_data.name }}</span>
+                                            {% if tag_data.display_mode != 'hidden' %}
+                                                <span class="category-badge me-1">{{ tag_data.name }}</span>
+                                            {% endif %}
                                         {% endfor %}
                                     </p>
                                 {% endif %}

@@ -13,6 +13,30 @@
     <form method="post">
         {% csrf_token %}
         
+        <!-- Настройки тега -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5>Настройки тега</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="display_mode">Режим отображения:</label>
+                            <select class="form-select" id="display_mode" name="display_mode">
+                                {% for value, label in debug_info.display_mode_choices %}
+                                    <option value="{{ value }}" {% if tag.display_mode|stringformat:"s" == value|stringformat:"s" %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                            <small class="form-text text-muted">Определяет, будет ли тег отображаться пользователям</small>
+                        </div>
+                        
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+        
         <div class="card">
             <div class="card-header">
                 <h5>Переводы для всех языков</h5>

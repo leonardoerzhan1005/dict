@@ -130,7 +130,7 @@
                                     {% endfor %}
                                 </div>
                             {% endif %}
-                            <div class="form-text">Можно выбрать несколько тегов или создать новые</div>
+                            <div class="form-text">Можно выбрать несколько тегов или оставить без тегов</div>
                         </div>
                         
                         <div class="row">
@@ -1100,7 +1100,6 @@ function createCategory() {
 function createTag() {
     const code = document.getElementById('newTagCode').value.trim();
     const name = document.getElementById('newTagName').value.trim();
-    const description = document.getElementById('newTagDescription').value.trim();
     
     if (!code || !name) {
         alert('Пожалуйста, заполните обязательные поля (код и название)');

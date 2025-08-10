@@ -68,6 +68,8 @@ class WordForm(forms.ModelForm):
         help_text='Используйте редактор для форматирования текста'
     )
     
+
+    
     class Meta:
         model = Word
         fields = ['word', 'meaning', 'language', 'category', 'tags', 'status', 'pronunciation', 'difficulty']
@@ -80,6 +82,12 @@ class WordForm(forms.ModelForm):
             'pronunciation': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'МФА транскрипция'}),
             'difficulty': forms.Select(attrs={'class': 'form-select'}),
         }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Показываем только видимые теги
+        if 'tags' in self.fields:
+            self.fields['tags'].queryset = Tag.objects.filter(display_mode='visible')
     
     def clean_word(self):
         """Валидация уникальности слова в рамках языка"""
@@ -161,3 +169,35 @@ class WordTranslationForm(forms.Form):
                 widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
                 required=False
             ) 
+
+class TagForm(forms.ModelForm):
+    """Форма для создания/редактирования тегов"""
+    
+    class Meta:
+        model = Tag
+        fields = ['code', 'display_mode']
+        widgets = {
+            'code': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Введите код тега (например: noun, verb)'
+            }),
+            'display_mode': forms.Select(attrs={
+                'class': 'form-select'
+            })
+        }
+    
+    def clean_code(self):
+        """Валидация уникальности кода тега"""
+        code = self.cleaned_data.get('code')
+        if code:
+            # Проверка на дубликаты
+            existing = Tag.objects.filter(code__iexact=code)
+            
+            # Исключаем текущий объект при редактировании
+            if self.instance and self.instance.pk:
+                existing = existing.exclude(pk=self.instance.pk)
+            
+            if existing.exists():
+                raise forms.ValidationError(f'Тег с кодом "{code}" уже существует')
+        
+        return code 

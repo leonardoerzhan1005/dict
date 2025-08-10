@@ -15,7 +15,7 @@ from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 from django.conf import settings
 from .models import Category, CategoryTranslation, Tag, TagTranslation, Language, InterfaceTranslation, Word, Translation, CustomUser
-from .forms import CustomUserCreationForm, WordForm, WordTranslationForm, WordStatusChangeForm
+from .forms import CustomUserCreationForm, WordForm, WordTranslationForm, WordStatusChangeForm, TagForm
 import json
 import os
 import uuid
@@ -135,12 +135,14 @@ def word_detail(request, slug):
             )
             tags_with_translations.append({
                 'tag': tag,
-                'name': translation.name
+                'name': translation.name,
+                'display_mode': tag.display_mode
             })
         except TagTranslation.DoesNotExist:
             tags_with_translations.append({
                 'tag': tag,
-                'name': tag.code
+                'name': tag.code,
+                'display_mode': tag.display_mode
             })
     
     context = {
@@ -224,7 +226,8 @@ def translation_dashboard(request):
         tag_stats[tag.id] = {
             'total': total_languages,
             'translated': translated_languages,
-            'percentage': round((translated_languages / total_languages) * 100) if total_languages > 0 else 0
+            'percentage': round((translated_languages / total_languages) * 100) if total_languages > 0 else 0,
+            'display_mode': tag.display_mode
         }
     
     # Общая статистика
@@ -305,6 +308,13 @@ def tag_translations_edit(request, slug):
     
     if request.method == 'POST':
         with transaction.atomic():
+            # Обновляем режим отображения тега
+            display_mode = request.POST.get('display_mode')
+            if display_mode in ['visible', 'hidden']:
+                tag.display_mode = display_mode
+                tag.save()
+            
+            # Обновляем переводы
             for language in languages:
                 name = request.POST.get(f'name_{language.code}')
                 
@@ -318,7 +328,7 @@ def tag_translations_edit(request, slug):
                         translation.name = name
                         translation.save()
         
-        messages.success(request, f'Переводы для тега "{tag.code}" обновлены')
+        messages.success(request, f'Переводы и настройки для тега "{tag.code}" обновлены')
         return redirect('dictionary:translation_dashboard')
     
     # Получаем существующие переводы
@@ -332,6 +342,13 @@ def tag_translations_edit(request, slug):
         'tag': tag,
         'languages': languages,
         'translations': translations,
+        'debug_info': {
+            'display_mode': tag.display_mode,
+            'display_mode_type': type(tag.display_mode).__name__,
+            'display_mode_choices': Tag.DISPLAY_CHOICES,
+            'display_mode_repr': repr(tag.display_mode),
+            'display_mode_str': str(tag.display_mode),
+        }
     }
     return render(request, 'dictionary/tag_translations_edit.html', context)
 
@@ -1219,7 +1236,7 @@ def quick_translate(request):
     # Получение данных для фильтров
     languages = Language.objects.all().order_by('code')
     categories = Category.objects.all().order_by('code')
-    tags = Tag.objects.all().order_by('code')
+    tags = Tag.objects.filter(display_mode='visible').order_by('code')
     
     # Статистика
     total_terms = Word.objects.published().count()
@@ -1664,7 +1681,7 @@ def term_list(request):
     # Получение данных для фильтров
     languages = Language.objects.all().order_by('code')
     categories = Category.objects.all().order_by('code')
-    tags = Tag.objects.all().order_by('code')
+    tags = Tag.objects.filter(display_mode='visible').order_by('code')
     
     # Статистика
     total_terms = Word.objects.published().count()
@@ -1991,10 +2008,14 @@ def create_tag_api(request):
         data = json.loads(request.body)
         code = data.get('code', '').strip()
         name = data.get('name', '').strip()
-        description = data.get('description', '').strip()
+        display_mode = data.get('display_mode', 'visible').strip()
         
         if not code or not name:
             return JsonResponse({'error': 'Код и название обязательны'}, status=400)
+        
+        # Проверяем корректность режима отображения
+        if display_mode not in ['visible', 'hidden']:
+            display_mode = 'visible'
         
         # Проверяем уникальность кода
         if Tag.objects.filter(code=code).exists():
@@ -2002,7 +2023,8 @@ def create_tag_api(request):
         
         # Создаем тег
         tag = Tag.objects.create(
-            code=code
+            code=code,
+            display_mode=display_mode
         )
         
         # Создаем переводы названий для всех языков
@@ -2013,13 +2035,13 @@ def create_tag_api(request):
                 language=language,
                 name=name  # Используем одно название для всех языков пока
             )
-            # Примечание: TagTranslation не имеет поля description
         
         return JsonResponse({
             'success': True,
             'tag': {
                 'id': tag.id,
-                'code': tag.code
+                'code': tag.code,
+                'display_mode': tag.display_mode
             }
         })
         
@@ -2068,3 +2090,63 @@ def change_word_status(request, slug):
         return JsonResponse({'error': 'Слово не найдено'}, status=404)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
+
+@staff_member_required
+def tag_create(request):
+    """Создание нового тега"""
+    if request.method == 'POST':
+        form = TagForm(request.POST)
+        if form.is_valid():
+            tag = form.save()
+            
+            # Создаем переводы названий для всех языков
+            languages = Language.objects.all()
+            for language in languages:
+                TagTranslation.objects.create(
+                    tag=tag,
+                    language=language,
+                    name=f"[{language.code}] {tag.code}"
+                )
+            
+            messages.success(request, f'Тег "{tag.code}" успешно создан')
+            return redirect('dictionary:translation_dashboard')
+    else:
+        form = TagForm()
+    
+    context = {
+        'form': form,
+        'title': 'Создание нового тега',
+        'submit_text': 'Создать тег',
+        'debug_info': {
+            'display_mode_choices': Tag.DISPLAY_CHOICES,
+            'form_display_mode': form['display_mode'].value() if 'display_mode' in form.fields else 'Нет поля',
+            'form_fields': list(form.fields.keys()),
+        }
+    }
+    return render(request, 'dictionary/tag_form.html', context)
+
+
+@staff_member_required
+def tag_edit(request, slug):
+    """Редактирование существующего тега"""
+    tag = get_object_or_404(Tag, slug=slug)
+    
+    if request.method == 'POST':
+        form = TagForm(request.POST, instance=tag)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'Тег "{tag.code}" успешно обновлен')
+            return redirect('dictionary:translation_dashboard')
+    else:
+        form = TagForm(instance=tag)
+    
+    context = {
+        'form': form,
+        'tag': tag,
+        'title': f'Редактирование тега: {tag.code}',
+        'submit_text': 'Сохранить изменения',
+        'debug_info': {
+            'display_mode_choices': Tag.DISPLAY_CHOICES,
+        }
+    }
+    return render(request, 'dictionary/tag_form.html', context)

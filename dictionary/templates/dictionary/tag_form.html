@@ -1,0 +1,112 @@
+{% extends "dictionary/base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>{{ title }}</h1>
+        <a href="{% url 'dictionary:translation_dashboard' %}" class="btn btn-secondary">← Назад к дашборду</a>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.code.id_for_label }}" class="form-label">
+                                {{ form.code.label }}
+                            </label>
+                            {{ form.code }}
+                            {% if form.code.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.code.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            {% if form.code.help_text %}
+                                <div class="form-text">{{ form.code.help_text }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.display_mode.id_for_label }}" class="form-label">
+                                {{ form.display_mode.label }}
+                            </label>
+                            {{ form.display_mode }}
+                            {% if form.display_mode.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.display_mode.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            {% if form.display_mode.help_text %}
+                                <div class="form-text">{{ form.display_mode.help_text }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">{{ submit_text }}</button>
+                            <a href="{% url 'dictionary:translation_dashboard' %}" class="btn btn-secondary">Отмена</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Справка</h5>
+                </div>
+                <div class="card-body">
+                    <h6>Код тега</h6>
+                    <p class="small text-muted">
+                        Уникальный идентификатор тега. Используется для программной идентификации.
+                        Примеры: noun, verb, adjective, technical, legal
+                    </p>
+                    
+                    <h6>Режим отображения</h6>
+                    <p class="small text-muted">
+                        <strong>Показывать:</strong> Тег будет виден пользователям<br>
+                        <strong>Скрыть:</strong> Тег будет скрыт от пользователей, но останется в системе
+                    </p>
+                    
+                    
+                    
+                    {% if tag %}
+                        <hr>
+                        <h6>Информация о теге</h6>
+                        <p class="small text-muted">
+                            <strong>Создан:</strong> {{ tag.created_at|date:"d.m.Y H:i" }}<br>
+                            <strong>Обновлен:</strong> {{ tag.updated_at|date:"d.m.Y H:i" }}<br>
+                            <strong>Slug:</strong> {{ tag.slug }}
+                        </p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.form-label {
+    font-weight: 500;
+    color: #495057;
+}
+.card-header h5 {
+    margin: 0;
+    color: #495057;
+}
+.card-header h6 {
+    margin: 0;
+    color: #495057;
+    font-size: 0.9rem;
+}
+</style>
+{% endblock %}

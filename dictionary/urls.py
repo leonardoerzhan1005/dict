@@ -42,6 +42,10 @@ urlpatterns = [
     path('translations/category/<slug:slug>/', views.category_translations_edit, name='category_translations_edit'),
     path('translations/tag/<slug:slug>/', views.tag_translations_edit, name='tag_translations_edit'),
     path('translations/interface/', views.interface_translations_edit, name='interface_translations_edit'),
+    
+    # Управление тегами
+    path('tag/create/', views.tag_create, name='tag_create'),
+    path('tag/edit/<slug:slug>/', views.tag_edit, name='tag_edit'),
     path('translations/add-missing/', views.add_missing_translations, name='add_missing_translations'),
     path('translations/bulk-add/', views.bulk_add_missing_translations, name='bulk_add_missing_translations'),
     path('translations/progress/', views.translation_progress, name='translation_progress'),

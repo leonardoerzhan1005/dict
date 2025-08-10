@@ -117,7 +117,13 @@ class CategoryTranslation(models.Model):
         return f'{self.category.code} [{self.language.code}]: {self.name[:20]}...'
 
 class Tag(SluggedModel, TimestampedModel):
+    DISPLAY_CHOICES = [
+        ('visible', 'Показывать'),
+        ('hidden', 'Скрыть'),
+    ]
+    
     code = models.CharField(max_length=30, unique=True)  # например, 'noun', 'verb'
+    display_mode = models.CharField(max_length=10, choices=DISPLAY_CHOICES, default='visible', help_text='Режим отображения тега')
     
     def get_slug_source(self):
         return self.code
@@ -223,6 +229,8 @@ class Word(models.Model):
         ('rejected', 'Отклонено'),
     ]
     DIFFICULTY_LEVELS = [
+        ('none', 'Без уровня'),
+        ('hidden', 'Не показывать'),
         ('easy', 'Легко'),
         ('medium', 'Средне'),
         ('hard', 'Сложно'),
@@ -241,7 +249,7 @@ class Word(models.Model):
     pronunciation = models.CharField(max_length=100, blank=True, help_text='МФА, транскрипция и т.д.')
     audio = models.FileField(upload_to='word_audio/', blank=True, null=True, help_text='Аудио слова')
     example_audio = models.FileField(upload_to='example_audio/', blank=True, null=True, help_text='Аудио примера')
-    difficulty = models.CharField(max_length=10, choices=DIFFICULTY_LEVELS, default='medium')
+    difficulty = models.CharField(max_length=10, choices=DIFFICULTY_LEVELS, default='none', blank=True, null=True)
     is_deleted = models.BooleanField(default=False, help_text='Soft-delete: не удалять из БД, а скрывать')
     created_by = models.ForeignKey('CustomUser', on_delete=models.SET_NULL, null=True, blank=True, related_name='added_words')
     created_at = models.DateTimeField(auto_now_add=True)

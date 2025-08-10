@@ -93,7 +93,8 @@ class TagTranslationInline(admin.TabularInline):
 
 @admin.register(Tag)
 class TagAdmin(TranslationDashboardAdmin):
-    list_display = ['code', 'get_translations_summary', 'get_missing_translations']
+    list_display = ['code', 'display_mode', 'get_translations_summary', 'get_missing_translations']
+    list_filter = ['display_mode']
     search_fields = ['code']
     inlines = [TagTranslationInline]
     actions = ['add_missing_translations']

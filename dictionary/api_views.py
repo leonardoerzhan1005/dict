@@ -101,7 +101,12 @@ def get_tags_api(request):
                 translation = tag.translations.first()
                 name = translation.name if translation else tag.code
             
-            tags.append({'id': tag.id, 'code': tag.code, 'name': name})
+            tags.append({
+                'id': tag.id, 
+                'code': tag.code, 
+                'name': name,
+                'display_mode': tag.display_mode
+            })
         
         return JsonResponse({'success': True, 'tags': tags})
     except Exception as e:
@@ -119,14 +124,20 @@ def update_tag_api(request, tag_id):
         data = json.loads(request.body)
         code = data.get('code', '').strip()
         name = data.get('name', '').strip()
+        display_mode = data.get('display_mode', 'visible').strip()
         
         if not code or not name:
             return JsonResponse({'error': 'Код и название обязательны'}, status=400)
+        
+        # Проверяем корректность режима отображения
+        if display_mode not in ['visible', 'hidden']:
+            display_mode = 'visible'
         
         if Tag.objects.filter(code=code).exclude(id=tag_id).exists():
             return JsonResponse({'error': f'Тег с кодом "{code}" уже существует'}, status=400)
         
         tag.code = code
+        tag.display_mode = display_mode
         tag.save()
         
         for translation in tag.translations.all():
@@ -135,7 +146,12 @@ def update_tag_api(request, tag_id):
         
         return JsonResponse({
             'success': True,
-            'tag': {'id': tag.id, 'code': tag.code, 'name': name}
+            'tag': {
+                'id': tag.id, 
+                'code': tag.code, 
+                'name': name,
+                'display_mode': tag.display_mode
+            }
         })
         
     except Tag.DoesNotExist:

@@ -152,11 +152,11 @@
                                                 {{ word.category.code }}
                                             </span>
                                         {% endif %}
-                                        {% if word.difficulty %}
-                                            <span class="difficulty-badge">
-                                                {{ word.get_difficulty_display }}
-                                            </span>
-                                        {% endif %}
+                                                                {% if word.difficulty and word.difficulty != 'none' and word.difficulty != 'hidden' %}
+                            <span class="difficulty-badge">
+                                {{ word.get_difficulty_display }}
+                            </span>
+                        {% endif %}
                                     </div>
                                     
                                     <!-- Нижняя часть с датой и действиями -->

@@ -204,11 +204,16 @@
     <div class="card dashboard-card mb-4">
         <div class="card-header d-flex justify-content-between align-items-center">
             <h5><i class="fas fa-tag"></i> Теги</h5>
-            <div class="btn-group" role="group">
-                <button type="button" class="btn btn-filter btn-filter-all" onclick="filterTagsByStatus('all')">Все</button>
-                <button type="button" class="btn btn-filter btn-filter-complete" onclick="filterTagsByStatus('complete')">Полные</button>
-                <button type="button" class="btn btn-filter btn-filter-partial" onclick="filterTagsByStatus('partial')">Частичные</button>
-                <button type="button" class="btn btn-filter btn-filter-empty" onclick="filterTagsByStatus('empty')">Пустые</button>
+            <div class="d-flex gap-2">
+                <a href="{% url 'dictionary:tag_create' %}" class="btn btn-dashboard-success">
+                    <i class="fas fa-plus"></i> Создать тег
+                </a>
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-filter btn-filter-all" onclick="filterTagsByStatus('all')">Все</button>
+                    <button type="button" class="btn btn-filter btn-filter-complete" onclick="filterTagsByStatus('complete')">Полные</button>
+                    <button type="button" class="btn btn-filter btn-filter-partial" onclick="filterTagsByStatus('partial')">Частичные</button>
+                    <button type="button" class="btn btn-filter btn-filter-empty" onclick="filterTagsByStatus('empty')">Пустые</button>
+                </div>
             </div>
         </div>
         <div class="card-body">
@@ -225,7 +230,14 @@
                     <tbody>
                         {% for tag in tags %}
                         <tr data-status="{% if tag_stats|get_item:tag.id|get_item:'percentage' == 100 %}complete{% elif tag_stats|get_item:tag.id|get_item:'percentage' == 0 %}empty{% else %}partial{% endif %}">
-                            <td><strong>{{ tag.code }}</strong></td>
+                            <td>
+                                <strong>{{ tag.code }}</strong>
+                                {% if tag_stats|get_item:tag.id|get_item:'display_mode' == 'hidden' %}
+                                    <span class="badge badge-secondary ms-1" title="Скрыт от пользователей">
+                                        <i class="fas fa-eye-slash"></i> Скрыт
+                                    </span>
+                                {% endif %}
+                            </td>
                             <td>
                                 {% for translation in tag.translations.all %}
                                     <span class="badge badge-translation">{{ translation.language.code }}: {{ translation.name }}</span>
@@ -249,9 +261,13 @@
                             </td>
                             <td>
                                 <div class="btn-group" role="group">
-                                    <a href="{% url 'dictionary:tag_translations_edit' tag.id %}" 
+                                    <a href="{% url 'dictionary:tag_edit' tag.slug %}" 
                                        class="btn btn-table-edit">
                                         <i class="fas fa-edit"></i> Редактировать
+                                    </a>
+                                    <a href="{% url 'dictionary:tag_translations_edit' tag.slug %}" 
+                                       class="btn btn-table-translate">
+                                        <i class="fas fa-language"></i> Переводы
                                     </a>
                                     <button class="btn btn-table-add add-missing-btn" 
                                             data-type="tag" 
@@ -723,6 +739,38 @@
 
 .text-muted {
     color: #888 !important;
+}
+
+/* Стили для новых элементов */
+.badge-secondary {
+    background-color: #6c757d;
+    color: #fff;
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+}
+
+.btn-table-translate {
+    background-color: #17a2b8;
+    border-color: #17a2b8;
+    color: #fff;
+}
+
+.btn-table-translate:hover {
+    background-color: #138496;
+    border-color: #117a8b;
+    color: #fff;
+}
+
+.btn-dashboard-success {
+    background-color: #28a745;
+    border-color: #28a745;
+    color: #fff;
+}
+
+.btn-dashboard-success:hover {
+    background-color: #218838;
+    border-color: #1e7e34;
+    color: #fff;
 }
 </style>
 
